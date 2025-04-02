@@ -57,27 +57,7 @@ function GuiLib:CreateWindow(name, size, position)
     mainFrame.BackgroundTransparency = self.Settings.DefaultTransparency
     mainFrame.BorderSizePixel = 0
     mainFrame.Parent = gui
-    -- Add this method to your UI library class/module
-function window:ToggleState(visible)
-    -- Check if visible is a boolean
-    if type(visible) ~= "boolean" then
-        error("ToggleState requires a boolean parameter (true or false)")
-        return
-    end
-    
-    -- Get the main frame
-    local mainFrame = self.gui:FindFirstChild("MainFrame")
-    if not mainFrame then
-        warn("MainFrame not found")
-        return
-    end
-    
-    -- Set visibility
-    mainFrame.Visible = visible
-    
-    -- Return the new state for chaining
-    return self
-    end
+
     -- Add corner radius
     local corner = Instance.new("UICorner")
     corner.CornerRadius = self.Settings.CornerRadius
@@ -210,6 +190,29 @@ function window:ToggleState(visible)
     window.mainFrame = mainFrame
     window.container = scrollingFrame
 
+         -- Add this method to your UI library class/module
+function window:ToggleState(visible)
+    -- Check if visible is a boolean
+    if type(visible) ~= "boolean" then
+        error("ToggleState requires a boolean parameter (true or false)")
+        return
+    end
+    
+    -- Get the main frame
+    local mainFrame = self.gui:FindFirstChild("MainFrame")
+    if not mainFrame then
+        warn("MainFrame not found")
+        return
+    end
+    
+    -- Set visibility
+    mainFrame.Visible = visible
+    
+    -- Return the new state for chaining
+    return self
+    end
+
+    
     function window:AddSection(title)
         local section = Instance.new("Frame")
         section.Name = "Section"
