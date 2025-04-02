@@ -481,16 +481,35 @@ UserInputService.InputEnded:Connect(function(input)
     end
 end)
 
-UserInputService.InputChanged:Connect(function(input)
-    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        local mousePos = input.Position.X
-        local barPos = sliderBar.AbsolutePosition.X
-        local barWidth = sliderBar.AbsoluteSize.X
-        local percent = math.clamp((mousePos - barPos) / barWidth, 0, 1)
-        currentValue = updateSlider(min + (max - min) * percent)
+local UserInputService = game:GetService("UserInputService")
+
+
+local function updatePosition(input)
+    local mousePos = input.Position.X
+    local barPos = sliderBar.AbsolutePosition.X
+    local barWidth = sliderBar.AbsoluteSize.X
+    local percent = math.clamp((mousePos - barPos) / barWidth, 0, 1)
+    currentValue = updateSlider(min + (max - min) * percent)
+end
+
+sliderBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        updatePosition(input)
     end
 end)
-        
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        updatePosition(input)
+    end
+end)
         local sliderFunctions = {}
         
         function sliderFunctions:Set(value)
