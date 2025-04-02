@@ -229,7 +229,6 @@ function GuiLib:CreateWindow(name, size, position)
     label.Font = GuiLib.Settings.FontRegular
     label.Parent = self.container
     
-    -- Add SetText method
     function label:SetText(newText)
         self.Text = newText
     end
