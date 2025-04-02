@@ -34,7 +34,7 @@ function GuiLib:CreateWindow(name, size, position)
     
     -- Handle protection
     pcall(function()
-        gui.Parent = playerGui
+        gui.Parent = CoreGui
     end)
     
     -- Fallback for HttpGet
