@@ -367,109 +367,6 @@ function GuiLib:CreateWindow(name, size, position)
         
         return toggleFunctions
     end
-
-    function window:AddSlider(text, min, max, default, precision, callback)
-        min = min or 0
-        max = max or 100
-        default = default or min
-        precision = precision or 1
-        
-        local slider = Instance.new("Frame")
-        slider.Name = "Slider"
-        slider.Size = UDim2.new(1, -20, 0, 45)
-        slider.BackgroundTransparency = 1
-        slider.Parent = self.container
-        
-        local label = Instance.new("TextLabel")
-        label.Name = "Label"
-        label.Size = UDim2.new(1, 0, 0, 20)
-        label.BackgroundTransparency = 1
-        label.TextColor3 = GuiLib.Settings.DefaultColors.Text
-        label.Text = text or "Slider"
-        label.TextSize = 14
-        label.Font = GuiLib.Settings.FontRegular
-        label.TextXAlignment = Enum.TextXAlignment.Left
-        label.Parent = slider
-        
-        local valueDisplay = Instance.new("TextLabel")
-        valueDisplay.Name = "Value"
-        valueDisplay.Size = UDim2.new(0, 50, 0, 20)
-        valueDisplay.Position = UDim2.new(1, -50, 0, 0)
-        valueDisplay.BackgroundTransparency = 1
-        valueDisplay.TextColor3 = GuiLib.Settings.DefaultColors.Text
-        valueDisplay.Text = tostring(default)
-        valueDisplay.TextSize = 14
-        valueDisplay.Font = GuiLib.Settings.FontBold
-        valueDisplay.TextXAlignment = Enum.TextXAlignment.Right
-        valueDisplay.Parent = slider
-        
-        local sliderBar = Instance.new("Frame")
-        sliderBar.Name = "SliderBar"
-        sliderBar.Size = UDim2.new(1, 0, 0, 6)
-        sliderBar.Position = UDim2.new(0, 0, 0, 25)
-        sliderBar.BackgroundColor3 = GuiLib.Settings.DefaultColors.Slider
-        sliderBar.BorderSizePixel = 0
-        sliderBar.Parent = slider
-        
-        local sliderCorner = Instance.new("UICorner")
-        sliderCorner.CornerRadius = UDim.new(1, 0)
-        sliderCorner.Parent = sliderBar
-        
-        local sliderFill = Instance.new("Frame")
-        sliderFill.Name = "SliderFill"
-        sliderFill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
-        sliderFill.BackgroundColor3 = GuiLib.Settings.DefaultColors.SliderFill
-        sliderFill.BorderSizePixel = 0
-        sliderFill.Parent = sliderBar
-        
-        local fillCorner = Instance.new("UICorner")
-        fillCorner.CornerRadius = UDim.new(1, 0)
-        fillCorner.Parent = sliderFill
-        
-        local sliderButton = Instance.new("TextButton")
-        sliderButton.Name = "SliderButton"
-        sliderButton.Size = UDim2.new(0, 16, 0, 16)
-        sliderButton.Position = UDim2.new((default - min) / (max - min), -8, 0, -5)
-        sliderButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.Text
-        sliderButton.Text = ""
-        sliderButton.Parent = sliderBar
-        
-        local buttonCorner = Instance.new("UICorner")
-        buttonCorner.CornerRadius = UDim.new(1, 0)
-        buttonCorner.Parent = sliderButton
-        
-        local function updateSlider(value)
-            local newValue = math.clamp(value, min, max)
-            if precision then
-                newValue = math.floor(newValue / precision) * precision
-            end
-            
-            local percent = (newValue - min) / (max - min)
-            sliderFill.Size = UDim2.new(percent, 0, 1, 0)
-            sliderButton.Position = UDim2.new(percent, -8, 0, -5)
-            valueDisplay.Text = tostring(newValue)
-            
-            if callback then
-                callback(newValue)
-            end
-            
-            return newValue
-        end
-        
-        local currentValue = default
-        updateSlider(currentValue)
-        
-        local dragging = false
-        
-        sliderButton.MouseButton1Down:Connect(function()
-            dragging = true
-        end)
-        
-        sliderBar.MouseButton1Down:Connect(function(inputObject)
-            dragging = true
-            local percent = math.clamp((inputObject.Position.X - sliderBar.AbsolutePosition.X) / sliderBar.AbsoluteSize.X, 0, 1)
-            currentValue = updateSlider(min + (max - min) * percent)
-        end)
 function window:AddSlider(text, min, max, default, precision, callback)
     min = min or 0
     max = max or 100
@@ -505,12 +402,15 @@ function window:AddSlider(text, min, max, default, precision, callback)
     valueDisplay.TextXAlignment = Enum.TextXAlignment.Right
     valueDisplay.Parent = slider
     
-    local sliderBar = Instance.new("Frame")
+    -- Change to TextButton to capture input on mobile
+    local sliderBar = Instance.new("TextButton")
     sliderBar.Name = "SliderBar"
     sliderBar.Size = UDim2.new(1, 0, 0, 6)
     sliderBar.Position = UDim2.new(0, 0, 0, 25)
     sliderBar.BackgroundColor3 = GuiLib.Settings.DefaultColors.Slider
     sliderBar.BorderSizePixel = 0
+    sliderBar.Text = ""
+    sliderBar.AutoButtonColor = false
     sliderBar.Parent = slider
     
     local sliderCorner = Instance.new("UICorner")
@@ -540,14 +440,6 @@ function window:AddSlider(text, min, max, default, precision, callback)
     buttonCorner.CornerRadius = UDim.new(1, 0)
     buttonCorner.Parent = sliderButton
     
-    -- Convert sliderBar to a TextButton to handle clicks properly
-    local sliderBarButton = Instance.new("TextButton")
-    sliderBarButton.Name = "SliderBarButton"
-    sliderBarButton.Size = UDim2.new(1, 0, 1, 0)
-    sliderBarButton.BackgroundTransparency = 1
-    sliderBarButton.Text = ""
-    sliderBarButton.Parent = sliderBar
-    
     local function updateSlider(value)
         local newValue = math.clamp(value, min, max)
         if precision then
@@ -572,7 +464,7 @@ function window:AddSlider(text, min, max, default, precision, callback)
     local dragging = false
     local userInputService = game:GetService("UserInputService")
     
-    -- Helper function to calculate value from position
+    -- Function to calculate value from position
     local function calculateValueFromPosition(inputPosition)
         local barPos = sliderBar.AbsolutePosition.X
         local barWidth = sliderBar.AbsoluteSize.X
@@ -580,7 +472,7 @@ function window:AddSlider(text, min, max, default, precision, callback)
         return min + (max - min) * percent
     end
     
-    -- Handle initial press (for both mouse and touch)
+    -- Handle initial press (both mouse and touch)
     sliderButton.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or 
            input.UserInputType == Enum.UserInputType.Touch then
@@ -588,8 +480,8 @@ function window:AddSlider(text, min, max, default, precision, callback)
         end
     end)
     
-    -- Handle click/touch on the bar itself
-    sliderBarButton.InputBegan:Connect(function(input)
+    -- Handle bar click/tap (both mouse and touch)
+    sliderBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or 
            input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
@@ -597,7 +489,7 @@ function window:AddSlider(text, min, max, default, precision, callback)
         end
     end)
     
-    -- Handle release (for both mouse and touch)
+    -- Handle input ending (both mouse and touch)
     userInputService.InputEnded:Connect(function(input)
         if (input.UserInputType == Enum.UserInputType.MouseButton1 or 
             input.UserInputType == Enum.UserInputType.Touch) and dragging then
@@ -605,10 +497,11 @@ function window:AddSlider(text, min, max, default, precision, callback)
         end
     end)
     
-    -- Handle movement (for both mouse and touch)
+    -- Handle drag movement (both mouse and touch)
     userInputService.InputChanged:Connect(function(input)
-        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or 
-                          input.UserInputType == Enum.UserInputType.Touch) then
+        if dragging and 
+           (input.UserInputType == Enum.UserInputType.MouseMovement or 
+            input.UserInputType == Enum.UserInputType.Touch) then
             currentValue = updateSlider(calculateValueFromPosition(input.Position))
         end
     end)
