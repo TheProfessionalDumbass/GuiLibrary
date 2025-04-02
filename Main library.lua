@@ -1,6 +1,6 @@
 local GuiLib = {}
 
--- Settings
+
 GuiLib.Settings = {
     DefaultColors = {
         Background = Color3.fromRGB(30, 30, 30),
@@ -15,7 +15,7 @@ GuiLib.Settings = {
     FontRegular = Enum.Font.Gotham
 }
 
--- Create the main container with draggable functionality
+
 function GuiLib:CreateWindow(name, size, position)
     local player = game.Players.LocalPlayer
     local playerGui = player:WaitForChild("PlayerGui")
