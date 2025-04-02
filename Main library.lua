@@ -219,23 +219,26 @@ function GuiLib:CreateWindow(name, size, position)
     end
 
     function window:AddLabel(text)
-    local label = Instance.new("TextLabel")
-    label.Name = "Label"
-    label.Size = UDim2.new(1, -10, 0, 25)
-    label.BackgroundTransparency = 1
-    label.TextColor3 = GuiLib.Settings.DefaultColors.Text
-    label.Text = text or "Label"
-    label.TextSize = 14
-    label.Font = GuiLib.Settings.FontRegular
-    label.Parent = self.container
+    local labelInstance = Instance.new("TextLabel")
+    labelInstance.Name = "Label"
+    labelInstance.Size = UDim2.new(1, -10, 0, 25)
+    labelInstance.BackgroundTransparency = 1
+    labelInstance.TextColor3 = GuiLib.Settings.DefaultColors.Text
+    labelInstance.Text = text or "Label"
+    labelInstance.TextSize = 14
+    labelInstance.Font = GuiLib.Settings.FontRegular
+    labelInstance.Parent = self.container
     
-    function label:SetText(newText)
-        self.Text = newText
-    end
+    -- Create a wrapper object
+    local label = {
+        Instance = labelInstance,
+        SetText = function(self, newText)
+            labelInstance.Text = newText
+        end
+    }
     
     return label
 end
-
     function window:AddButton(text, callback)
         local button = Instance.new("TextButton")
         button.Name = "Button"
