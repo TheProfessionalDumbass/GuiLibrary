@@ -199,7 +199,7 @@ function window:ToggleState(visible)
     end
     
     -- Get the main frame
-    local mainFrame = self.gui:FindFirstChild("MainFrame")
+    local mainFrame = window.gui:FindFirstChild("MainFrame")
     if not mainFrame then
         warn("MainFrame not found")
         return
