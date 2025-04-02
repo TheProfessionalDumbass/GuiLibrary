@@ -465,27 +465,31 @@ function GuiLib:CreateWindow(name, size, position)
             dragging = true
         end)
         
-        sliderBar.MouseButton1Down:Connect(function(inputObject)
-            dragging = true
-            local percent = math.clamp((inputObject.Position.X - sliderBar.AbsolutePosition.X) / sliderBar.AbsoluteSize.X, 0, 1)
-            currentValue = updateSlider(min + (max - min) * percent)
-        end)
-        
-        game:GetService("UserInputService").InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                dragging = false
-            end
-        end)
-        
-        game:GetService("UserInputService").InputChanged:Connect(function(input)
-            if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-                local mousePos = input.Position.X
-                local barPos = sliderBar.AbsolutePosition.X
-                local barWidth = sliderBar.AbsoluteSize.X
-                local percent = math.clamp((mousePos - barPos) / barWidth, 0, 1)
-                currentValue = updateSlider(min + (max - min) * percent)
-            end
-        end)
+        local UserInputService = game:GetService("UserInputService")
+
+sliderBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        local percent = math.clamp((input.Position.X - sliderBar.AbsolutePosition.X) / sliderBar.AbsoluteSize.X, 0, 1)
+        currentValue = updateSlider(min + (max - min) * percent)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local mousePos = input.Position.X
+        local barPos = sliderBar.AbsolutePosition.X
+        local barWidth = sliderBar.AbsoluteSize.X
+        local percent = math.clamp((mousePos - barPos) / barWidth, 0, 1)
+        currentValue = updateSlider(min + (max - min) * percent)
+    end
+end)
         
         local sliderFunctions = {}
         
