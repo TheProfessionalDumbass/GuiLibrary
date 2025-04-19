@@ -3,130 +3,39 @@ local GuiLib = {}
 -- Settings 
 GuiLib.Settings = {
     DefaultColors = {
-        Background = Color3.fromRGB(35, 35, 40),
-        BackgroundSecondary = Color3.fromRGB(45, 45, 50),
-        Title = Color3.fromRGB(25, 25, 30),
-        Button = Color3.fromRGB(55, 55, 65),
-        ButtonHover = Color3.fromRGB(65, 65, 75),
-        ButtonPressed = Color3.fromRGB(45, 45, 55),
-        ButtonEnabled = Color3.fromRGB(45, 180, 90),
-        ButtonDisabled = Color3.fromRGB(200, 65, 65),
-        Text = Color3.fromRGB(240, 240, 245),
-        TextDimmed = Color3.fromRGB(180, 180, 190),
-        Accent = Color3.fromRGB(100, 120, 255),
-        AccentDark = Color3.fromRGB(80, 100, 220),
-        Slider = Color3.fromRGB(70, 70, 80),
-        SliderFill = Color3.fromRGB(100, 120, 255),
-        Toggle = Color3.fromRGB(55, 55, 65),
-        ToggleEnabled = Color3.fromRGB(100, 120, 255),
-        Dropdown = Color3.fromRGB(55, 55, 65),
-        ScrollBar = Color3.fromRGB(75, 75, 85),
-        Shadow = Color3.fromRGB(0, 0, 5)
+        Background = Color3.fromRGB(30, 30, 30),
+        Title = Color3.fromRGB(50, 50, 50),
+        Button = Color3.fromRGB(50, 50, 50),
+        ButtonEnabled = Color3.fromRGB(50, 150, 50),
+        ButtonDisabled = Color3.fromRGB(150, 50, 50),
+        Text = Color3.fromRGB(255, 255, 255),
+        Slider = Color3.fromRGB(100, 100, 100),
+        SliderFill = Color3.fromRGB(0, 162, 255),
+        Toggle = Color3.fromRGB(70, 70, 70),
+        ToggleEnabled = Color3.fromRGB(0, 162, 255),
+        Dropdown = Color3.fromRGB(40, 40, 40),
+        ScrollBar = Color3.fromRGB(60, 60, 60),
+        Accent = Color3.fromRGB(0, 162, 255) -- Added accent color
     },
-    DefaultTransparency = 0.1,
+    DefaultTransparency = 0.3,
     FontBold = Enum.Font.GothamBold,
-    FontSemibold = Enum.Font.GothamSemibold,
     FontRegular = Enum.Font.Gotham,
-    CornerRadius = UDim.new(0, 6),
-    ElementCornerRadius = UDim.new(0, 4),
-    ShadowTransparency = 0.85,
-    Easing = Enum.EasingStyle.Quint,
-    EasingDirection = Enum.EasingDirection.Out,
-    TweenDuration = {
-        Short = 0.15,
-        Medium = 0.25,
-        Long = 0.4
-    },
-    Spring = {
-        Damping = 0.8,
-        Frequency = 3,
-        Initial = 0,
-        Velocity = 0
-    }
+    CornerRadius = UDim.new(0, 6) -- Increased corner radius
 }
 
--- Enhanced tweening utility functions
+-- Utility functions for tweening
 local TweenService = game:GetService("TweenService")
-local function TweenElement(element, properties, duration, easingStyle, easingDirection, delay)
+
+local function tweenProperty(instance, property, value, time, easingStyle, easingDirection)
     local tweenInfo = TweenInfo.new(
-        duration or GuiLib.Settings.TweenDuration.Medium,
-        easingStyle or GuiLib.Settings.Easing,
-        easingDirection or GuiLib.Settings.EasingDirection,
-        0, -- RepeatCount
-        false, -- Reverses
-        delay or 0 -- DelayTime
+        time or 0.3,
+        easingStyle or Enum.EasingStyle.Quart,
+        easingDirection or Enum.EasingDirection.Out
     )
     
-    local tween = TweenService:Create(element, tweenInfo, properties)
+    local tween = TweenService:Create(instance, tweenInfo, {[property] = value})
     tween:Play()
     return tween
-end
-
-local function SpringTween(element, properties, dampingRatio, frequency, delay)
-    local tweenInfo = TweenInfo.new(
-        GuiLib.Settings.TweenDuration.Medium,
-        Enum.EasingStyle.Spring,
-        Enum.EasingDirection.Out,
-        0, -- RepeatCount
-        false, -- Reverses
-        delay or 0, -- DelayTime
-        dampingRatio or GuiLib.Settings.Spring.Damping,
-        frequency or GuiLib.Settings.Spring.Frequency
-    )
-    
-    local tween = TweenService:Create(element, tweenInfo, properties)
-    tween:Play()
-    return tween
-end
-
-local function BounceIn(element, properties, duration)
-    local tweenInfo = TweenInfo.new(
-        duration or GuiLib.Settings.TweenDuration.Medium,
-        Enum.EasingStyle.Bounce,
-        Enum.EasingDirection.Out,
-        0, -- RepeatCount
-        false, -- Reverses
-        0 -- DelayTime
-    )
-    
-    local tween = TweenService:Create(element, tweenInfo, properties)
-    tween:Play()
-    return tween
-end
-
-local function ElasticOut(element, properties, duration)
-    local tweenInfo = TweenInfo.new(
-        duration or GuiLib.Settings.TweenDuration.Medium,
-        Enum.EasingStyle.Elastic,
-        Enum.EasingDirection.Out,
-        0, -- RepeatCount
-        false, -- Reverses
-        0 -- DelayTime
-    )
-    
-    local tween = TweenService:Create(element, tweenInfo, properties)
-    tween:Play()
-    return tween
-end
-
-local function SequenceTween(element, properties, durations)
-    local tweens = {}
-    for i, propertySet in ipairs(properties) do
-        local duration = durations[i] or GuiLib.Settings.TweenDuration.Medium
-        local tween = TweenElement(element, propertySet, duration)
-        table.insert(tweens, tween)
-    end
-    
-    -- Chain the tweens
-    for i = 1, #tweens - 1 do
-        tweens[i].Completed:Connect(function()
-            tweens[i + 1]:Play()
-        end)
-    end
-    
-    -- Play the first tween
-    tweens[1]:Play()
-    return tweens
 end
 
 -- Create the main container with draggable functionality
@@ -156,7 +65,6 @@ function GuiLib:CreateWindow(name, size, position)
         end
     end
 
-    -- Modified for horizontal layout
     local mainFrame = Instance.new("Frame")
     mainFrame.Name = "MainFrame"
     mainFrame.Size = size or UDim2.new(0, 650, 0, 300) -- Wider for horizontal layout
@@ -165,6 +73,7 @@ function GuiLib:CreateWindow(name, size, position)
     mainFrame.BackgroundTransparency = self.Settings.DefaultTransparency
     mainFrame.BorderSizePixel = 0
     mainFrame.Parent = gui
+    mainFrame.ClipsDescendants = true -- Prevent elements from spilling out
 
     -- Add corner radius
     local corner = Instance.new("UICorner")
@@ -174,23 +83,23 @@ function GuiLib:CreateWindow(name, size, position)
     -- Add shadow with improved appearance
     local shadow = Instance.new("ImageLabel")
     shadow.Name = "Shadow"
-    shadow.Size = UDim2.new(1, 50, 1, 50)
-    shadow.Position = UDim2.new(0, -25, 0, -25)
+    shadow.Size = UDim2.new(1, 40, 1, 40)
+    shadow.Position = UDim2.new(0, -20, 0, -20)
     shadow.BackgroundTransparency = 1
     shadow.Image = "rbxassetid://5554236805"
-    shadow.ImageColor3 = self.Settings.DefaultColors.Shadow
-    shadow.ImageTransparency = self.Settings.ShadowTransparency
+    shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+    shadow.ImageTransparency = 0.6
     shadow.ScaleType = Enum.ScaleType.Slice
     shadow.SliceCenter = Rect.new(23, 23, 277, 277)
     shadow.ZIndex = 0
     shadow.Parent = mainFrame
 
-    -- Title bar (now horizontal along the top)
+    -- Title bar (now on the left side for horizontal layout)
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
-    titleBar.Size = UDim2.new(1, 0, 0, 38)
+    titleBar.Size = UDim2.new(0, 200, 1, 0) -- Full height, fixed width
     titleBar.BackgroundColor3 = self.Settings.DefaultColors.Title
-    titleBar.BackgroundTransparency = self.Settings.DefaultTransparency
+    titleBar.BackgroundTransparency = self.Settings.DefaultTransparency - 0.1 -- Slightly more opaque
     titleBar.BorderSizePixel = 0
     titleBar.Parent = mainFrame
     
@@ -198,159 +107,131 @@ function GuiLib:CreateWindow(name, size, position)
     titleCorner.CornerRadius = self.Settings.CornerRadius
     titleCorner.Parent = titleBar
     
-    -- Bottom corner fix
-    local bottomFrameFix = Instance.new("Frame")
-    bottomFrameFix.Name = "BottomFix"
-    bottomFrameFix.Size = UDim2.new(1, 0, 0, 10)
-    bottomFrameFix.Position = UDim2.new(0, 0, 1, -10)
-    bottomFrameFix.BackgroundColor3 = self.Settings.DefaultColors.Title
-    bottomFrameFix.BackgroundTransparency = self.Settings.DefaultTransparency
-    bottomFrameFix.BorderSizePixel = 0
-    bottomFrameFix.ZIndex = 1
-    bottomFrameFix.Parent = titleBar
-    
-    -- Title icon
-    local titleIcon = Instance.new("Frame")
-    titleIcon.Name = "TitleIcon"
-    titleIcon.Size = UDim2.new(0, 8, 0, 16)
-    titleIcon.Position = UDim2.new(0, 12, 0.5, -8)
-    titleIcon.BackgroundColor3 = self.Settings.DefaultColors.Accent
-    titleIcon.BorderSizePixel = 0
-    titleIcon.Parent = titleBar
-    
-    local titleIconCorner = Instance.new("UICorner")
-    titleIconCorner.CornerRadius = UDim.new(0, 2)
-    titleIconCorner.Parent = titleIcon
-    
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Name = "Title"
-    titleLabel.Size = UDim2.new(1, -100, 1, 0)
-    titleLabel.Position = UDim2.new(0, 28, 0, 0)
+    titleLabel.Size = UDim2.new(1, -20, 0, 40)
+    titleLabel.Position = UDim2.new(0, 10, 0, 10)
     titleLabel.BackgroundTransparency = 1
     titleLabel.TextColor3 = self.Settings.DefaultColors.Text
-    titleLabel.TextSize = 16
+    titleLabel.TextSize = 18
     titleLabel.Font = self.Settings.FontBold
     titleLabel.Text = name or "GUI Library"
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Parent = titleBar
     
-    -- Close button with improved animation
+    -- Accent line 
+    local accentLine = Instance.new("Frame")
+    accentLine.Name = "AccentLine"
+    accentLine.Size = UDim2.new(0.7, 0, 0, 2)
+    accentLine.Position = UDim2.new(0, 10, 0, 50)
+    accentLine.BackgroundColor3 = self.Settings.DefaultColors.Accent
+    accentLine.BorderSizePixel = 0
+    accentLine.Parent = titleBar
+    
+    -- Close button (now at top of sidebar)
     local closeButton = Instance.new("TextButton")
     closeButton.Name = "CloseButton"
-    closeButton.Size = UDim2.new(0, 26, 0, 26)
-    closeButton.Position = UDim2.new(1, -32, 0, 6)
-    closeButton.BackgroundColor3 = self.Settings.DefaultColors.ButtonDisabled
-    closeButton.BackgroundTransparency = 0.3
-    closeButton.Text = ""
-    closeButton.AutoButtonColor = false
+    closeButton.Size = UDim2.new(0, 24, 0, 24)
+    closeButton.Position = UDim2.new(1, -30, 0, 10)
+    closeButton.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+    closeButton.BackgroundTransparency = 0.5
+    closeButton.Text = "✕"
+    closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    closeButton.TextSize = 14
+    closeButton.Font = self.Settings.FontBold
     closeButton.Parent = titleBar
     
     local closeCorner = Instance.new("UICorner")
-    closeCorner.CornerRadius = UDim.new(0, 4)
+    closeCorner.CornerRadius = UDim.new(0, 12)
     closeCorner.Parent = closeButton
     
-    local closeIcon = Instance.new("TextLabel")
-    closeIcon.Name = "CloseIcon"
-    closeIcon.Size = UDim2.new(1, 0, 1, 0)
-    closeIcon.BackgroundTransparency = 1
-    closeIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
-    closeIcon.Text = "×"
-    closeIcon.TextSize = 18
-    closeIcon.Font = self.Settings.FontBold
-    closeIcon.Parent = closeButton
+    -- Hover effect for close button
+    closeButton.MouseEnter:Connect(function()
+        tweenProperty(closeButton, "BackgroundTransparency", 0.3, 0.2)
+    end)
     
-    -- Horizontal layout with sidebar and main content area
-    local sidebarFrame = Instance.new("Frame")
-    sidebarFrame.Name = "SidebarFrame"
-    sidebarFrame.Size = UDim2.new(0, 170, 1, -46)
-    sidebarFrame.Position = UDim2.new(0, 8, 0, 38)
-    sidebarFrame.BackgroundColor3 = self.Settings.DefaultColors.BackgroundSecondary
-    sidebarFrame.BackgroundTransparency = 0.25
-    sidebarFrame.BorderSizePixel = 0
-    sidebarFrame.Parent = mainFrame
+    closeButton.MouseLeave:Connect(function()
+        tweenProperty(closeButton, "BackgroundTransparency", 0.5, 0.2)
+    end)
     
-    local sidebarCorner = Instance.new("UICorner")
-    sidebarCorner.CornerRadius = self.Settings.CornerRadius
-    sidebarCorner.Parent = sidebarFrame
+    closeButton.MouseButton1Click:Connect(function()
+        -- Fade out animation
+        tweenProperty(mainFrame, "BackgroundTransparency", 1, 0.3)
+        tweenProperty(titleBar, "BackgroundTransparency", 1, 0.3)
+        
+        -- Wait for animation to finish before destroying
+        delay(0.3, function()
+            gui:Destroy()
+        end)
+    end)
     
-    local sidebarScrollingFrame = Instance.new("ScrollingFrame")
-    sidebarScrollingFrame.Name = "SidebarContainer"
-    sidebarScrollingFrame.Size = UDim2.new(1, -12, 1, -12)
-    sidebarScrollingFrame.Position = UDim2.new(0, 6, 0, 6)
-    sidebarScrollingFrame.BackgroundTransparency = 1
-    sidebarScrollingFrame.BorderSizePixel = 0
-    sidebarScrollingFrame.ScrollBarThickness = 3
-    sidebarScrollingFrame.ScrollBarImageColor3 = self.Settings.DefaultColors.ScrollBar
-    sidebarScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-    sidebarScrollingFrame.Parent = sidebarFrame
+    -- Main content area (scrolling horizontally now)
+    local contentArea = Instance.new("Frame")
+    contentArea.Name = "ContentArea"
+    contentArea.Size = UDim2.new(1, -210, 1, -20) -- Leave room for the sidebar
+    contentArea.Position = UDim2.new(0, 205, 0, 10)
+    contentArea.BackgroundTransparency = 1
+    contentArea.BorderSizePixel = 0
+    contentArea.Parent = mainFrame
     
-    -- Content area (main panel)
-    local containerBorder = Instance.new("Frame")
-    containerBorder.Name = "ContainerBorder"
-    containerBorder.Size = UDim2.new(1, -194, 1, -46) -- Width adjusted to accommodate sidebar
-    containerBorder.Position = UDim2.new(0, 186, 0, 38) -- Positioned to the right of sidebar
-    containerBorder.BackgroundColor3 = self.Settings.DefaultColors.BackgroundSecondary
-    containerBorder.BackgroundTransparency = 0.25
-    containerBorder.BorderSizePixel = 0
-    containerBorder.Parent = mainFrame
-    
-    local borderCorner = Instance.new("UICorner")
-    borderCorner.CornerRadius = self.Settings.CornerRadius
-    borderCorner.Parent = containerBorder
-    
+    -- Scrolling container (horizontal)
     local scrollingFrame = Instance.new("ScrollingFrame")
     scrollingFrame.Name = "Container"
-    scrollingFrame.Size = UDim2.new(1, -12, 1, -12)
-    scrollingFrame.Position = UDim2.new(0, 6, 0, 6)
+    scrollingFrame.Size = UDim2.new(1, 0, 1, 0)
     scrollingFrame.BackgroundTransparency = 1
     scrollingFrame.BorderSizePixel = 0
-    scrollingFrame.ScrollBarThickness = 3
+    scrollingFrame.ScrollBarThickness = 6
+    scrollingFrame.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
     scrollingFrame.ScrollBarImageColor3 = self.Settings.DefaultColors.ScrollBar
     scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-    scrollingFrame.Parent = containerBorder
+    scrollingFrame.Parent = contentArea
     
-    -- Auto layout for sidebar
-    local sidebarListLayout = Instance.new("UIListLayout")
-    sidebarListLayout.Padding = UDim.new(0, 8)
-    sidebarListLayout.FillDirection = Enum.FillDirection.Vertical
-    sidebarListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    sidebarListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    sidebarListLayout.Parent = sidebarScrollingFrame
-    
-    local sidebarPadding = Instance.new("UIPadding")
-    sidebarPadding.PaddingTop = UDim.new(0, 6)
-    sidebarPadding.PaddingBottom = UDim.new(0, 6)
-    sidebarPadding.PaddingLeft = UDim.new(0, 2)
-    sidebarPadding.PaddingRight = UDim.new(0, 2)
-    sidebarPadding.Parent = sidebarScrollingFrame
-    
-    -- Auto layout for main container
-    local listLayout = Instance.new("UIListLayout")
-    listLayout.Padding = UDim.new(0, 8)
-    listLayout.FillDirection = Enum.FillDirection.Vertical
-    listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    -- Auto layout for content
+    local listLayout = Instance.new("UIGridLayout")
+    listLayout.CellPadding = UDim2.new(0, 10, 0, 10)
+    listLayout.CellSize = UDim2.new(0, 200, 0, 100) -- Default size for items
+    listLayout.FillDirection = Enum.FillDirection.Horizontal
+    listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+    listLayout.VerticalAlignment = Enum.VerticalAlignment.Top
     listLayout.SortOrder = Enum.SortOrder.LayoutOrder
     listLayout.Parent = scrollingFrame
     
     local paddingFrame = Instance.new("UIPadding")
-    paddingFrame.PaddingTop = UDim.new(0, 6)
-    paddingFrame.PaddingBottom = UDim.new(0, 6)
-    paddingFrame.PaddingLeft = UDim.new(0, 2)
-    paddingFrame.PaddingRight = UDim.new(0, 2)
+    paddingFrame.PaddingTop = UDim.new(0, 5)
+    paddingFrame.PaddingBottom = UDim.new(0, 5)
+    paddingFrame.PaddingLeft = UDim.new(0, 5)
+    paddingFrame.PaddingRight = UDim.new(0, 5)
     paddingFrame.Parent = scrollingFrame
 
-    -- Enhanced dragging with spring effects for both PC and Mobile
+    -- Sidebar navigation
+    local navContainer = Instance.new("ScrollingFrame")
+    navContainer.Name = "NavContainer"
+    navContainer.Size = UDim2.new(1, -20, 1, -80)
+    navContainer.Position = UDim2.new(0, 10, 0, 60)
+    navContainer.BackgroundTransparency = 1
+    navContainer.BorderSizePixel = 0
+    navContainer.ScrollBarThickness = 4
+    navContainer.ScrollBarImageColor3 = self.Settings.DefaultColors.ScrollBar
+    navContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+    navContainer.Parent = titleBar
+    
+    local navLayout = Instance.new("UIListLayout")
+    navLayout.Padding = UDim.new(0, 8)
+    navLayout.FillDirection = Enum.FillDirection.Vertical
+    navLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    navLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    navLayout.Parent = navContainer
+
+    -- Dragging for both PC and Mobile
     local isDragging = false
     local dragStart, startPos
 
     local function updateDrag(input)
         local delta = input.Position - dragStart
-        SpringTween(mainFrame, {
-            Position = UDim2.new(
-                startPos.X.Scale, startPos.X.Offset + delta.X,
-                startPos.Y.Scale, startPos.Y.Offset + delta.Y
-            )
-        }, 0.7, 4) -- Slightly bouncy feel
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale, startPos.X.Offset + delta.X,
+            startPos.Y.Scale, startPos.Y.Offset + delta.Y
+        )
     end
 
     titleBar.InputBegan:Connect(function(input)
@@ -358,24 +239,12 @@ function GuiLib:CreateWindow(name, size, position)
             isDragging = true
             dragStart = input.Position
             startPos = mainFrame.Position
-            
-            -- Add a subtle scale effect when grabbed
-            TweenElement(mainFrame, {Size = UDim2.new(
-                mainFrame.Size.X.Scale, mainFrame.Size.X.Offset * 0.99,
-                mainFrame.Size.Y.Scale, mainFrame.Size.Y.Offset * 0.99
-            )}, 0.2)
         end
     end)
 
     titleBar.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             isDragging = false
-            
-            -- Restore original size with a bounce effect
-            ElasticOut(mainFrame, {Size = UDim2.new(
-                mainFrame.Size.X.Scale, mainFrame.Size.X.Offset / 0.99,
-                mainFrame.Size.Y.Scale, mainFrame.Size.Y.Offset / 0.99
-            )}, 0.3)
         end
     end)
 
@@ -385,82 +254,48 @@ function GuiLib:CreateWindow(name, size, position)
         end
     end)
 
-    -- Auto-update container sizes
-    sidebarListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        sidebarScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, sidebarListLayout.AbsoluteContentSize.Y + 12)
-    end)
-    
+    -- Auto-update container size
     listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 12)
-    end)
-
-    -- Button animations with spring
-    closeButton.MouseEnter:Connect(function()
-        SpringTween(closeButton, {
-            BackgroundTransparency = 0.1,
-            Size = UDim2.new(0, 28, 0, 28),
-            Position = UDim2.new(1, -33, 0, 5)
-        }, 0.8, 4)
+        scrollingFrame.CanvasSize = UDim2.new(0, listLayout.AbsoluteContentSize.X + 10, 0, 0)
     end)
     
-    closeButton.MouseLeave:Connect(function()
-        TweenElement(closeButton, {
-            BackgroundTransparency = 0.3,
-            Size = UDim2.new(0, 26, 0, 26),
-            Position = UDim2.new(1, -32, 0, 6)
-        }, 0.2)
-    end)
-    
-    closeButton.MouseButton1Click:Connect(function()
-        -- Fancy close animation
-        TweenElement(mainFrame, {BackgroundTransparency = 1}, 0.3)
-        TweenElement(titleBar, {BackgroundTransparency = 1}, 0.25)
-        TweenElement(containerBorder, {BackgroundTransparency = 1}, 0.2)
-        TweenElement(sidebarFrame, {BackgroundTransparency = 1}, 0.2)
-        TweenElement(shadow, {ImageTransparency = 1}, 0.4)
-        
-        ElasticOut(mainFrame, {
-            Size = UDim2.new(0, mainFrame.Size.X.Offset * 0.7, 0, 0),
-            Position = UDim2.new(
-                mainFrame.Position.X.Scale, mainFrame.Position.X.Offset + mainFrame.Size.X.Offset * 0.15, 
-                mainFrame.Position.Y.Scale, mainFrame.Position.Y.Offset + mainFrame.Size.Y.Offset * 0.5
-            )
-        }, 0.5)
-        
-        -- Delete after animation finishes
-        task.delay(0.5, function()
-            gui:Destroy()
-        end)
+    -- Auto-update nav container size
+    navLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        navContainer.CanvasSize = UDim2.new(0, 0, 0, navLayout.AbsoluteContentSize.Y + 10)
     end)
 
     local window = {}
     window.gui = gui
     window.mainFrame = mainFrame
     window.container = scrollingFrame
-    window.sidebar = sidebarScrollingFrame
+    window.navContainer = navContainer
+    
+    -- Add entry animation
+    mainFrame.BackgroundTransparency = 1
+    titleBar.BackgroundTransparency = 1
+    
+    tweenProperty(mainFrame, "BackgroundTransparency", self.Settings.DefaultTransparency, 0.5)
+    tweenProperty(titleBar, "BackgroundTransparency", self.Settings.DefaultTransparency - 0.1, 0.5)
 
-    -- Window toggle with advanced animation
+    -- Toggle window visibility
     function window:ToggleState(visible)
         if type(visible) ~= "boolean" then
             error("ToggleState requires a boolean parameter (true or false)")
             return
         end
         
+        local mainFrame = window.gui:FindFirstChild("MainFrame")
+        if not mainFrame then
+            warn("MainFrame not found")
+            return
+        end
+        
         if visible then
             mainFrame.Visible = true
-            TweenElement(mainFrame, {BackgroundTransparency = self.Settings.DefaultTransparency}, 0.3)
-            SpringTween(mainFrame, {
-                Size = UDim2.new(0, 650, 0, 300)
-            }, 0.7, 3.5)
+            tweenProperty(mainFrame, "BackgroundTransparency", self.Settings.DefaultTransparency, 0.3)
         else
-            SequenceTween(mainFrame, 
-                {
-                    {BackgroundTransparency = 1},
-                    {Size = UDim2.new(0, 650, 0, 0)}
-                },
-                {0.3, 0.2}
-            )
-            task.delay(0.5, function()
+            tweenProperty(mainFrame, "BackgroundTransparency", 1, 0.3)
+            delay(0.3, function()
                 mainFrame.Visible = false
             end)
         end
@@ -468,177 +303,278 @@ function GuiLib:CreateWindow(name, size, position)
         return self
     end
 
-    -- Add section with smooth enter animation
+    -- Create section (card-based design)
     function window:AddSection(title)
         local section = Instance.new("Frame")
-        section.Name = "Section"
-        section.Size = UDim2.new(1, -4, 0, 36)
+        section.Name = "Section_" .. title
         section.BackgroundColor3 = GuiLib.Settings.DefaultColors.Title
-        section.BackgroundTransparency = 1 -- Start fully transparent for animation
+        section.BackgroundTransparency = GuiLib.Settings.DefaultTransparency - 0.1
         section.BorderSizePixel = 0
         section.Parent = self.container
         
+        -- Initial animation state
+        section.Size = UDim2.new(0, 200, 0, 0)
+        section.BackgroundTransparency = 1
+        
+        -- Animate in
+        tweenProperty(section, "Size", UDim2.new(0, 200, 0, 200), 0.3)
+        tweenProperty(section, "BackgroundTransparency", GuiLib.Settings.DefaultTransparency - 0.1, 0.3)
+        
+        -- Add inner shadow/glow effect
+        local innerGlow = Instance.new("ImageLabel")
+        innerGlow.Name = "InnerGlow"
+        innerGlow.AnchorPoint = Vector2.new(0.5, 0.5)
+        innerGlow.Position = UDim2.new(0.5, 0, 0.5, 0)
+        innerGlow.Size = UDim2.new(1, 10, 1, 10)
+        innerGlow.BackgroundTransparency = 1
+        innerGlow.Image = "rbxassetid://5554236805"
+        innerGlow.ImageColor3 = GuiLib.Settings.DefaultColors.Accent
+        innerGlow.ImageTransparency = 0.9
+        innerGlow.ScaleType = Enum.ScaleType.Slice
+        innerGlow.SliceCenter = Rect.new(23, 23, 277, 277)
+        innerGlow.ZIndex = 0
+        innerGlow.Parent = section
+        
         local sectionCorner = Instance.new("UICorner")
-        sectionCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
+        sectionCorner.CornerRadius = GuiLib.Settings.CornerRadius
         sectionCorner.Parent = section
         
-        local sectionAccent = Instance.new("Frame")
-        sectionAccent.Name = "Accent"
-        sectionAccent.Size = UDim2.new(0, 0, 0, 18) -- Start with 0 width for animation
-        sectionAccent.Position = UDim2.new(0, 8, 0.5, -9)
-        sectionAccent.BackgroundColor3 = GuiLib.Settings.DefaultColors.Accent
-        sectionAccent.BorderSizePixel = 0
-        sectionAccent.Parent = section
+        -- Header
+        local headerContainer = Instance.new("Frame")
+        headerContainer.Name = "HeaderContainer"
+        headerContainer.Size = UDim2.new(1, 0, 0, 30)
+        headerContainer.BackgroundTransparency = 0.7
+        headerContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Title
+        headerContainer.BorderSizePixel = 0
+        headerContainer.Parent = section
         
-        local accentCorner = Instance.new("UICorner")
-        accentCorner.CornerRadius = UDim.new(0, 2)
-        accentCorner.Parent = sectionAccent
+        local headerCorner = Instance.new("UICorner")
+        headerCorner.CornerRadius = GuiLib.Settings.CornerRadius
+        headerCorner.Parent = headerContainer
         
         local sectionTitle = Instance.new("TextLabel")
         sectionTitle.Name = "Title"
-        sectionTitle.Size = UDim2.new(1, -32, 1, 0)
-        sectionTitle.Position = UDim2.new(0, 20, 0, 0)
+        sectionTitle.Size = UDim2.new(1, -10, 1, 0)
+        sectionTitle.Position = UDim2.new(0, 10, 0, 0)
         sectionTitle.BackgroundTransparency = 1
         sectionTitle.TextColor3 = GuiLib.Settings.DefaultColors.Text
-        sectionTitle.TextTransparency = 1 -- Start fully transparent for animation
         sectionTitle.TextSize = 14
-        sectionTitle.Font = GuiLib.Settings.FontSemibold
+        sectionTitle.Font = GuiLib.Settings.FontBold
         sectionTitle.Text = title or "Section"
         sectionTitle.TextXAlignment = Enum.TextXAlignment.Left
-        sectionTitle.Parent = section
+        sectionTitle.Parent = headerContainer
         
-        -- Animation sequence
-        TweenElement(section, {BackgroundTransparency = 0.35}, 0.3)
-        task.delay(0.1, function()
-            TweenElement(sectionAccent, {Size = UDim2.new(0, 4, 0, 18)}, 0.4, Enum.EasingStyle.Back)
-            TweenElement(sectionTitle, {TextTransparency = 0}, 0.3)
+        -- Content container
+        local contentContainer = Instance.new("ScrollingFrame")
+        contentContainer.Name = "ContentContainer"
+        contentContainer.Size = UDim2.new(1, -10, 1, -40)
+        contentContainer.Position = UDim2.new(0, 5, 0, 35)
+        contentContainer.BackgroundTransparency = 1
+        contentContainer.BorderSizePixel = 0
+        contentContainer.ScrollBarThickness = 4
+        contentContainer.ScrollBarImageColor3 = GuiLib.Settings.DefaultColors.ScrollBar
+        contentContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+        contentContainer.Parent = section
+        
+        -- Auto layout
+        local contentLayout = Instance.new("UIListLayout")
+        contentLayout.Padding = UDim.new(0, 5)
+        contentLayout.FillDirection = Enum.FillDirection.Vertical
+        contentLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+        contentLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        contentLayout.Parent = contentContainer
+        
+        local contentPadding = Instance.new("UIPadding")
+        contentPadding.PaddingTop = UDim.new(0, 5)
+        contentPadding.PaddingBottom = UDim.new(0, 5)
+        contentPadding.Parent = contentContainer
+        
+        -- Auto-update content container size
+        contentLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            contentContainer.CanvasSize = UDim2.new(0, 0, 0, contentLayout.AbsoluteContentSize.Y + 10)
         end)
         
-        return section
+        -- Add navigation button
+        local navButton = Instance.new("TextButton")
+        navButton.Name = "NavButton_" .. title
+        navButton.Size = UDim2.new(1, -20, 0, 30)
+        navButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
+        navButton.BackgroundTransparency = 0.5
+        navButton.TextColor3 = GuiLib.Settings.DefaultColors.Text
+        navButton.Text = title
+        navButton.TextSize = 14
+        navButton.Font = GuiLib.Settings.FontRegular
+        navButton.Parent = self.navContainer
+        
+        local navCorner = Instance.new("UICorner")
+        navCorner.CornerRadius = GuiLib.Settings.CornerRadius
+        navCorner.Parent = navButton
+        
+        -- Hover and click effects
+        navButton.MouseEnter:Connect(function()
+            tweenProperty(navButton, "BackgroundTransparency", 0.3, 0.2)
+        end)
+        
+        navButton.MouseLeave:Connect(function()
+            tweenProperty(navButton, "BackgroundTransparency", 0.5, 0.2)
+        end)
+        
+        navButton.MouseButton1Down:Connect(function()
+            tweenProperty(navButton, "BackgroundTransparency", 0.1, 0.1)
+        end)
+        
+        navButton.MouseButton1Up:Connect(function()
+            tweenProperty(navButton, "BackgroundTransparency", 0.3, 0.1)
+        end)
+        
+        -- Click to scroll to section
+        navButton.MouseButton1Click:Connect(function()
+            -- Find the section's position in the container
+            local layoutItems = {}
+            for _, child in pairs(self.container:GetChildren()) do
+                if child:IsA("Frame") and child.Name:match("^Section_") then
+                    table.insert(layoutItems, child)
+                end
+            end
+            
+            table.sort(layoutItems, function(a, b)
+                return a.LayoutOrder < b.LayoutOrder
+            end)
+            
+            local index = 0
+            for i, item in ipairs(layoutItems) do
+                if item == section then
+                    index = i
+                    break
+                end
+            end
+            
+            if index > 0 then
+                local cellWidth = 210 -- 200 + 10 padding
+                self.container.CanvasPosition = Vector2.new((index - 1) * cellWidth, 0)
+            end
+            
+            -- Highlight effect
+            local originalColor = section.BackgroundColor3
+            tweenProperty(section, "BackgroundColor3", GuiLib.Settings.DefaultColors.Accent, 0.3)
+            delay(0.3, function()
+                tweenProperty(section, "BackgroundColor3", originalColor, 0.5)
+            end)
+        end)
+        
+        return contentContainer
     end
 
     function window:AddLabel(text)
         local labelInstance = Instance.new("TextLabel")
         labelInstance.Name = "Label"
-        labelInstance.Size = UDim2.new(1, -8, 0, 26)
+        labelInstance.Size = UDim2.new(1, -10, 0, 25)
         labelInstance.BackgroundTransparency = 1
-        labelInstance.TextColor3 = GuiLib.Settings.DefaultColors.TextDimmed
+        labelInstance.TextColor3 = GuiLib.Settings.DefaultColors.Text
         labelInstance.Text = text or "Label"
         labelInstance.TextSize = 14
         labelInstance.Font = GuiLib.Settings.FontRegular
-        labelInstance.TextTransparency = 1 -- Start transparent for animation
         labelInstance.Parent = self.container
-        
-        -- Animate in
-        TweenElement(labelInstance, {TextTransparency = 0}, 0.3)
         
         -- Create a wrapper object
         local label = {
             Instance = labelInstance,
             SetText = function(self, newText)
-                TweenElement(labelInstance, {TextTransparency = 0.5}, 0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out).Completed:Connect(function()
-                    labelInstance.Text = newText
-                    TweenElement(labelInstance, {TextTransparency = 0}, 0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
-                end)
+                labelInstance.Text = newText
             end
         }
         
         return label
     end
-
+    
     function window:AddButton(text, callback)
         local button = Instance.new("TextButton")
         button.Name = "Button"
-        button.Size = UDim2.new(1, -8, 0, 36)
+        button.Size = UDim2.new(1, -10, 0, 32)
         button.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
         button.TextColor3 = GuiLib.Settings.DefaultColors.Text
         button.Text = text or "Button"
         button.TextSize = 14
-        button.Font = GuiLib.Settings.FontSemibold
-        button.AutoButtonColor = false
-        button.BackgroundTransparency = 1 -- Start transparent for animation
-        button.TextTransparency = 1 -- Start transparent for animation
+        button.Font = GuiLib.Settings.FontBold
         button.Parent = self.container
         
         local buttonCorner = Instance.new("UICorner")
-        buttonCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
+        buttonCorner.CornerRadius = GuiLib.Settings.CornerRadius
         buttonCorner.Parent = button
         
-        -- Add a glow effect
-        local buttonStroke = Instance.new("UIStroke")
-        buttonStroke.Name = "ButtonStroke"
-        buttonStroke.Color = GuiLib.Settings.DefaultColors.Accent
-        buttonStroke.Transparency = 1 -- Start transparent for animation
-        buttonStroke.Thickness = 1.5
-        buttonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-        buttonStroke.Parent = button
+        -- Add subtle shadow
+        local buttonShadow = Instance.new("ImageLabel")
+        buttonShadow.Name = "Shadow"
+        buttonShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+        buttonShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+        buttonShadow.Size = UDim2.new(1, 6, 1, 6)
+        buttonShadow.BackgroundTransparency = 1
+        buttonShadow.Image = "rbxassetid://5554236805"
+        buttonShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+        buttonShadow.ImageTransparency = 0.8
+        buttonShadow.ScaleType = Enum.ScaleType.Slice
+        buttonShadow.SliceCenter = Rect.new(23, 23, 277, 277)
+        buttonShadow.ZIndex = 0
+        buttonShadow.Parent = button
         
-        -- Animate in
-        TweenElement(button, {BackgroundTransparency = 0, TextTransparency = 0}, 0.3)
-        TweenElement(buttonStroke, {Transparency = 0.9}, 0.4)
-        
-        -- Enhanced animation effects
+        -- Animation effects with improved tweening
         button.MouseEnter:Connect(function()
-            SpringTween(button, {
-                BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonHover,
-                Size = UDim2.new(1, -4, 0, 36)
-            }, 0.8, 4)
-            TweenElement(buttonStroke, {Transparency = 0.7}, 0.2)
+            tweenProperty(button, "BackgroundColor3", Color3.fromRGB(
+                math.min(GuiLib.Settings.DefaultColors.Button.R * 255 + 30, 255),
+                math.min(GuiLib.Settings.DefaultColors.Button.G * 255 + 30, 255),
+                math.min(GuiLib.Settings.DefaultColors.Button.B * 255 + 30, 255)
+            ), 0.2, Enum.EasingStyle.Quad)
+            
+            tweenProperty(button, "Size", UDim2.new(1, -8, 0, 34), 0.2)
         end)
         
         button.MouseLeave:Connect(function()
-            SpringTween(button, {
-                BackgroundColor3 = GuiLib.Settings.DefaultColors.Button,
-                Size = UDim2.new(1, -8, 0, 36)
-            }, 0.8, 3)
-            TweenElement(buttonStroke, {Transparency = 0.9}, 0.2)
+            tweenProperty(button, "BackgroundColor3", GuiLib.Settings.DefaultColors.Button, 0.2)
+            tweenProperty(button, "Size", UDim2.new(1, -10, 0, 32), 0.2)
         end)
         
         button.MouseButton1Down:Connect(function()
-            SpringTween(button, {
-                BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonPressed,
-                Size = UDim2.new(1, -12, 0, 36)
-            }, 0.9, 3)
-            TweenElement(buttonStroke, {Transparency = 0.6}, 0.1)
+            tweenProperty(button, "BackgroundColor3", Color3.fromRGB(
+                math.max(GuiLib.Settings.DefaultColors.Button.R * 255 - 30, 0),
+                math.max(GuiLib.Settings.DefaultColors.Button.G * 255 - 30, 0),
+                math.max(GuiLib.Settings.DefaultColors.Button.B * 255 - 30, 0)
+            ), 0.1)
+            
+            tweenProperty(button, "Size", UDim2.new(1, -12, 0, 30), 0.1)
         end)
         
         button.MouseButton1Up:Connect(function()
-            SpringTween(button, {
-                BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonHover,
-                Size = UDim2.new(1, -4, 0, 36)
-            }, 0.7, 3)
-            TweenElement(buttonStroke, {Transparency = 0.7}, 0.2)
+            tweenProperty(button, "BackgroundColor3", Color3.fromRGB(
+                math.min(GuiLib.Settings.DefaultColors.Button.R * 255 + 30, 255),
+                math.min(GuiLib.Settings.DefaultColors.Button.G * 255 + 30, 255),
+                math.min(GuiLib.Settings.DefaultColors.Button.B * 255 + 30, 255)
+            ), 0.1)
+            
+            tweenProperty(button, "Size", UDim2.new(1, -8, 0, 34), 0.1)
         end)
         
         if callback then
             button.MouseButton1Click:Connect(function()
-                -- Add a ripple effect
+                -- Ripple effect
                 local ripple = Instance.new("Frame")
                 ripple.Name = "Ripple"
+                ripple.AnchorPoint = Vector2.new(0.5, 0.5)
                 ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
                 ripple.BackgroundTransparency = 0.7
                 ripple.BorderSizePixel = 0
-                ripple.ZIndex = button.ZIndex + 1
+                ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
+                ripple.Size = UDim2.new(0, 0, 0, 0)
+                ripple.ZIndex = 2
                 ripple.Parent = button
                 
                 local rippleCorner = Instance.new("UICorner")
-                rippleCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
+                rippleCorner.CornerRadius = UDim.new(1, 0)
                 rippleCorner.Parent = ripple
                 
-                -- Position ripple at click position
-                local mouse = game:GetService("Players").LocalPlayer:GetMouse()
-                local size = math.max(button.AbsoluteSize.X, button.AbsoluteSize.Y) * 1.5
-                ripple.Size = UDim2.new(0, 0, 0, 0)
-                ripple.Position = UDim2.new(0, mouse.X - button.AbsolutePosition.X, 0, mouse.Y - button.AbsolutePosition.Y)
-                ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+                tweenProperty(ripple, "Size", UDim2.new(2, 0, 2, 0), 0.5)
+                tweenProperty(ripple, "BackgroundTransparency", 1, 0.5)
                 
-                -- Animate ripple
-                TweenElement(ripple, {
-                    Size = UDim2.new(0, size, 0, size),
-                    BackgroundTransparency = 1
-                }, 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out).Completed:Connect(function()
-                    ripple:Destroy()
-                end)
+                game:GetService("Debris"):AddItem(ripple, 0.5)
                 
                 callback()
             end)
@@ -649,24 +585,17 @@ function GuiLib:CreateWindow(name, size, position)
 
     function window:AddToggle(text, default, callback)
         local toggleContainer = Instance.new("Frame")
-        toggleContainer.Name = "ToggleContainer"
-        toggleContainer.Size = UDim2.new(1, -8, 0, 36)
-        toggleContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
-        toggleContainer.BackgroundTransparency = 1 -- Start transparent for animation
-        toggleContainer.BorderSizePixel = 0
+        toggleContainer.Name = "Toggle"
+        toggleContainer.Size = UDim2.new(1, -10, 0, 30)
+        toggleContainer.BackgroundTransparency = 1
         toggleContainer.Parent = self.container
-        
-        local containerCorner = Instance.new("UICorner")
-        containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
-        containerCorner.Parent = toggleContainer
         
         local label = Instance.new("TextLabel")
         label.Name = "Label"
-        label.Size = UDim2.new(1, -64, 1, 0)
-        label.Position = UDim2.new(0, 16, 0, 0)
+        label.Size = UDim2.new(1, -50, 1, 0)
+        label.Position = UDim2.new(0, 0, 0, 0)
         label.BackgroundTransparency = 1
         label.TextColor3 = GuiLib.Settings.DefaultColors.Text
-        label.TextTransparency = 1 -- Start transparent for animation
         label.Text = text or "Toggle"
         label.TextSize = 14
         label.Font = GuiLib.Settings.FontRegular
@@ -675,29 +604,25 @@ function GuiLib:CreateWindow(name, size, position)
         
         local toggleButton = Instance.new("Frame")
         toggleButton.Name = "ToggleButton"
-        toggleButton.Size = UDim2.new(0, 44, 0, 24)
-        toggleButton.Position = UDim2.new(1, -54, 0.5, -12)
+        toggleButton.Size = UDim2.new(0, 44, 0, 22)
+        toggleButton.Position = UDim2.new(1, -44, 0.5, -11)
         toggleButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.Toggle
-        toggleButton.BackgroundTransparency = 1 -- Start transparent for animation
-        toggleButton.BorderSizePixel = 0
         toggleButton.Parent = toggleContainer
         
         local toggleCorner = Instance.new("UICorner")
         toggleCorner.CornerRadius = UDim.new(1, 0)
         toggleCorner.Parent = toggleButton
         
-        local toggleIndicator = Instance.new("Frame")
-        toggleIndicator.Name = "Indicator"
-        toggleIndicator.Size = UDim2.new(0, 18, 0, 18)
-        toggleIndicator.Position = UDim2.new(0, 3, 0.5, -9)
-        toggleIndicator.BackgroundColor3 = GuiLib.Settings.DefaultColors.Text
-        toggleIndicator.BackgroundTransparency = 1 -- Start transparent for animation
-        toggleIndicator.BorderSizePixel = 0
-        toggleIndicator.Parent = toggleButton
+        local indicator = Instance.new("Frame")
+        indicator.Name = "Indicator"
+        indicator.Size = UDim2.new(0, 18, 0, 18)
+        indicator.Position = UDim2.new(0, 2, 0.5, -9)
+        indicator.BackgroundColor3 = GuiLib.Settings.DefaultColors.Text
+        indicator.Parent = toggleButton
         
         local indicatorCorner = Instance.new("UICorner")
         indicatorCorner.CornerRadius = UDim.new(1, 0)
-        indicatorCorner.Parent = toggleIndicator
+        indicatorCorner.Parent = indicator
         
         local clickArea = Instance.new("TextButton")
         clickArea.Name = "ClickArea"
@@ -706,79 +631,23 @@ function GuiLib:CreateWindow(name, size, position)
         clickArea.Text = ""
         clickArea.Parent = toggleContainer
         
-        -- Animate in
-        TweenElement(toggleContainer, {BackgroundTransparency = 0.4}, 0.3)
-        TweenElement(label, {TextTransparency = 0}, 0.4)
-        TweenElement(toggleButton, {BackgroundTransparency = 0}, 0.3)
-        TweenElement(toggleIndicator, {BackgroundTransparency = 0}, 0.4)
-        
         local isEnabled = default or false
         
         local function updateVisuals()
             if isEnabled then
-                SpringTween(toggleButton, {
-                    BackgroundColor3 = GuiLib.Settings.DefaultColors.ToggleEnabled
-                }, 0.8, 4)
-                
-                SpringTween(toggleIndicator, {
-                    Position = UDim2.new(0, 23, 0.5, -9)
-                }, 0.7, 3.5)
+                tweenProperty(toggleButton, "BackgroundColor3", GuiLib.Settings.DefaultColors.ToggleEnabled, 0.3)
+                tweenProperty(indicator, "Position", UDim2.new(0, 24, 0.5, -9), 0.3)
             else
-                TweenElement(toggleButton, {
-                    BackgroundColor3 = GuiLib.Settings.DefaultColors.Toggle
-                }, 0.3)
-                
-                SpringTween(toggleIndicator, {
-                    Position = UDim2.new(0, 3, 0.5, -9)
-                }, 0.7, 3.5)
+                tweenProperty(toggleButton, "BackgroundColor3", GuiLib.Settings.DefaultColors.Toggle, 0.3)
+                tweenProperty(indicator, "Position", UDim2.new(0, 2, 0.5, -9), 0.3)
             end
         end
         
         updateVisuals()
         
-        -- Hover effect
-        clickArea.MouseEnter:Connect(function()
-            TweenElement(toggleContainer, {BackgroundTransparency = 0.2}, 0.2)
-            SpringTween(toggleIndicator, {Size = UDim2.new(0, 20, 0, 20), Position = UDim2.new(
-                toggleIndicator.Position.X.Scale,
-                toggleIndicator.Position.X.Offset,
-                0.5, -10
-            )}, 0.8, 4)
-        end)
-        
-        clickArea.MouseLeave:Connect(function()
-            TweenElement(toggleContainer, {BackgroundTransparency = 0.4}, 0.2)
-            SpringTween(toggleIndicator, {Size = UDim2.new(0, 18, 0, 18), Position = UDim2.new(
-                toggleIndicator.Position.X.Scale, 
-                toggleIndicator.Position.X.Offset,
-                0.5, -9
-            )}, 0.8, 4)
-        end)
-        
         clickArea.MouseButton1Click:Connect(function()
             isEnabled = not isEnabled
             updateVisuals()
-            
-            -- Add a pulse effect on click
-            local pulse = toggleIndicator:Clone()
-            pulse.Size = UDim2.new(0, 18, 0, 18)
-            pulse.Position = toggleIndicator.Position
-            pulse.BackgroundTransparency = 0.7
-            pulse.ZIndex = toggleIndicator.ZIndex - 1
-            pulse.Parent = toggleButton
-            
-            TweenElement(pulse, {
-                Size = UDim2.new(0, 30, 0, 30),
-                BackgroundTransparency = 1,
-                Position = UDim2.new(
-                    pulse.Position.X.Scale,
-                    pulse.Position.X.Offset - 5,
-                    0.5, -15
-                )
-            }, 0.3).Completed:Connect(function()
-                pulse:Destroy()
-            end)
-            
             if callback then
                 callback(isEnabled)
             end
@@ -802,79 +671,63 @@ function GuiLib:CreateWindow(name, size, position)
         
         return toggleFunctions
     end
-
+    
     function window:AddSlider(text, min, max, default, precision, callback)
         min = min or 0
         max = max or 100
         default = default or min
         precision = precision or 1
         
-        local sliderContainer = Instance.new("Frame")
-        sliderContainer.Name = "SliderContainer"
-        sliderContainer.Size = UDim2.new(1, -8, 0, 56)
-        sliderContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
-        sliderContainer.BackgroundTransparency = 1 -- Start transparent for animation
-        sliderContainer.BorderSizePixel = 0
-        sliderContainer.Parent = self.container
-        
-        local containerCorner = Instance.new("UICorner")
-        containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
-        containerCorner.Parent = sliderContainer
+        local slider = Instance.new("Frame")
+        slider.Name = "Slider"
+        slider.Size = UDim2.new(1, -10, 0, 50)
+        slider.BackgroundTransparency = 1
+        slider.Parent = self.container
         
         local label = Instance.new("TextLabel")
         label.Name = "Label"
-        label.Size = UDim2.new(1, -100, 0, 30)
-        label.Position = UDim2.new(0, 16, 0, 0)
+        label.Size = UDim2.new(1, 0, 0, 20)
         label.BackgroundTransparency = 1
         label.TextColor3 = GuiLib.Settings.DefaultColors.Text
-        label.TextTransparency = 1 -- Start transparent for animation
         label.Text = text or "Slider"
         label.TextSize = 14
         label.Font = GuiLib.Settings.FontRegular
         label.TextXAlignment = Enum.TextXAlignment.Left
-        label.Parent = sliderContainer
+        label.Parent = slider
         
         local valueDisplay = Instance.new("TextLabel")
         valueDisplay.Name = "Value"
-        valueDisplay.Size = UDim2.new(0, 70, 0, 30)
-        valueDisplay.Position = UDim2.new(1, -80, 0, 0)
+        valueDisplay.Size = UDim2.new(0, 50, 0, 20)
+        valueDisplay.Position = UDim2.new(1, -50, 0, 0)
         valueDisplay.BackgroundTransparency = 1
         valueDisplay.TextColor3 = GuiLib.Settings.DefaultColors.Text
-        valueDisplay.TextTransparency = 1 -- Start transparent for animation
         valueDisplay.Text = tostring(default)
         valueDisplay.TextSize = 14
-        valueDisplay.Font = GuiLib.Settings.FontSemibold
+        valueDisplay.Font = GuiLib.Settings.FontBold
         valueDisplay.TextXAlignment = Enum.TextXAlignment.Right
-        valueDisplay.Parent = sliderContainer
+        valueDisplay.Parent = slider
         
         -- Change to TextButton to capture input on mobile
-        local sliderBarContainer = Instance.new("Frame")
-        sliderBarContainer.Name = "SliderBarContainer"
-        sliderBarContainer.Size = UDim2.new(1, -32, 0, 8)
-        sliderBarContainer.Position = UDim2.new(0, 16, 0, 34)
-        sliderBarContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Slider
-        sliderBarContainer.BackgroundTransparency = 1 -- Start transparent for animation
-        sliderBarContainer.BorderSizePixel = 0
-        sliderBarContainer.Parent = sliderContainer
-        
-        local barContainerCorner = Instance.new("UICorner")
-        barContainerCorner.CornerRadius = UDim.new(1, 0)
-        barContainerCorner.Parent = sliderBarContainer
-        
         local sliderBar = Instance.new("TextButton")
         sliderBar.Name = "SliderBar"
-        sliderBar.Size = UDim2.new(1, 0, 1, 0)
-        sliderBar.BackgroundTransparency = 1
+        sliderBar.Size = UDim2.new(1, 0, 0, 8) -- Thinner bar
+        sliderBar.Position = UDim2.new(0, 0, 0, 30)
+        sliderBar.BackgroundColor3 = GuiLib.Settings.DefaultColors.Slider
+        sliderBar.BorderSizePixel = 0
         sliderBar.Text = ""
-        sliderBar.Parent = sliderBarContainer
+        sliderBar.AutoButtonColor = false
+        sliderBar.Parent = slider
+        
+        local sliderCorner = Instance.new("UICorner")
+        sliderCorner.CornerRadius = UDim.new(1, 0)
+        sliderCorner.Parent = sliderBar
         
         local sliderFill = Instance.new("Frame")
         sliderFill.Name = "SliderFill"
-        sliderFill.Size = UDim2.new(0, 0, 1, 0) -- Start with 0 width for animation
+        sliderFill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
         sliderFill.BackgroundColor3 = GuiLib.Settings.DefaultColors.SliderFill
-        sliderFill.BackgroundTransparency = 1 -- Start transparent for animation
         sliderFill.BorderSizePixel = 0
-        sliderFill.Parent = sliderBarContainer
+        sliderFill.Parent = sliderBar
         
         local fillCorner = Instance.new("UICorner")
         fillCorner.CornerRadius = UDim.new(1, 0)
@@ -882,48 +735,30 @@ function GuiLib:CreateWindow(name, size, position)
         
         local sliderButton = Instance.new("TextButton")
         sliderButton.Name = "SliderButton"
-        sliderButton.Size = UDim2.new(0, 0, 0, 0) -- Start at 0 size for animation
-        sliderButton.Position = UDim2.new((default - min) / (max - min), 0, 0.5, 0)
-        sliderButton.AnchorPoint = Vector2.new(0.5, 0.5)
-        sliderButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.SliderFill
-        sliderButton.BackgroundTransparency = 1 -- Start transparent for animation
+        sliderButton.Size = UDim2.new(0, 18, 0, 18)
+        sliderButton.Position = UDim2.new((default - min) / (max - min), -9, 0, -5)
+        sliderButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.Text
         sliderButton.Text = ""
-        sliderButton.Parent = sliderBarContainer
+        sliderButton.Parent = sliderBar
+        
+        -- Add shadow to slider button
+        local buttonShadow = Instance.new("ImageLabel")
+        buttonShadow.Name = "Shadow"
+        buttonShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+        buttonShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+        buttonShadow.Size = UDim2.new(1, 6, 1, 6)
+        buttonShadow.BackgroundTransparency = 1
+        buttonShadow.Image = "rbxassetid://5554236805"
+        buttonShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+        buttonShadow.ImageTransparency = 0.7
+        buttonShadow.ScaleType = Enum.ScaleType.Slice
+        buttonShadow.SliceCenter = Rect.new(23, 23, 277, 277)
+        buttonShadow.ZIndex = 0
+        buttonShadow.Parent = sliderButton
         
         local buttonCorner = Instance.new("UICorner")
         buttonCorner.CornerRadius = UDim.new(1, 0)
         buttonCorner.Parent = sliderButton
-        
-        -- Add a glow effect to the button
-        local buttonStroke = Instance.new("UIStroke")
-        buttonStroke.Name = "ButtonStroke"
-        buttonStroke.Color = Color3.fromRGB(255, 255, 255)
-        buttonStroke.Transparency = 1 -- Start transparent for animation
-        buttonStroke.Thickness = 1.5
-        buttonStroke.Parent = sliderButton
-        
-        -- Animate in with sequence
-        TweenElement(sliderContainer, {BackgroundTransparency = 0.4}, 0.3)
-        task.delay(0.1, function()
-            TweenElement(label, {TextTransparency = 0}, 0.3)
-            TweenElement(valueDisplay, {TextTransparency = 0}, 0.3)
-        end)
-        task.delay(0.2, function()
-            TweenElement(sliderBarContainer, {BackgroundTransparency = 0}, 0.3)
-            TweenElement(sliderFill, {BackgroundTransparency = 0}, 0.3)
-        end)
-        task.delay(0.3, function()
-            SpringTween(sliderButton, {
-                Size = UDim2.new(0, 18, 0, 18),
-                BackgroundTransparency = 0
-            }, 0.7, 4)
-            TweenElement(buttonStroke, {Transparency = 0.7}, 0.3)
-            
-            -- Set initial fill width properly
-            TweenElement(sliderFill, {
-                Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
-            }, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-        end)
         
         local function updateSlider(value)
             local newValue = math.clamp(value, min, max)
@@ -932,24 +767,8 @@ function GuiLib:CreateWindow(name, size, position)
             end
             
             local percent = (newValue - min) / (max - min)
-            
-            SpringTween(sliderFill, {
-                Size = UDim2.new(percent, 0, 1, 0)
-            }, 0.8, 4)
-            
-            SpringTween(sliderButton, {
-                Position = UDim2.new(percent, 0, 0.5, 0)
-            }, 0.7, 4)
-            
-            -- Animate the value change
-            local currentNum = tonumber(valueDisplay.Text) or default
-            SequenceTween(valueDisplay, 
-                {
-                    {TextTransparency = 0.5}, 
-                    {TextTransparency = 0}
-                },
-                {0.15, 0.15}
-            )
+            tweenProperty(sliderFill, "Size", UDim2.new(percent, 0, 1, 0), 0.1, Enum.EasingStyle.Quad)
+            tweenProperty(sliderButton, "Position", UDim2.new(percent, -9, 0, -5), 0.1, Enum.EasingStyle.Quad)
             valueDisplay.Text = tostring(newValue)
             
             if callback then
@@ -967,54 +786,18 @@ function GuiLib:CreateWindow(name, size, position)
         
         -- Function to calculate value from position
         local function calculateValueFromPosition(inputPosition)
-            local barPos = sliderBarContainer.AbsolutePosition.X
-            local barWidth = sliderBarContainer.AbsoluteSize.X
+            local barPos = sliderBar.AbsolutePosition.X
+            local barWidth = sliderBar.AbsoluteSize.X
             local percent = math.clamp((inputPosition.X - barPos) / barWidth, 0, 1)
             return min + (max - min) * percent
         end
-        
-        -- Enhanced hover and pressed effects
-        sliderButton.MouseEnter:Connect(function()
-            SpringTween(sliderButton, {
-                Size = UDim2.new(0, 22, 0, 22)
-            }, 0.8, 4)
-            TweenElement(buttonStroke, {Transparency = 0.4}, 0.2)
-        end)
-        
-        sliderButton.MouseLeave:Connect(function()
-            if not dragging then
-                SpringTween(sliderButton, {
-                    Size = UDim2.new(0, 18, 0, 18)
-                }, 0.8, 4)
-                TweenElement(buttonStroke, {Transparency = 0.7}, 0.2)
-            end
-        end)
         
         -- Handle initial press (both mouse and touch)
         sliderButton.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 or 
                input.UserInputType == Enum.UserInputType.Touch then
                 dragging = true
-                
-                -- Pulse effect on click
-                SpringTween(sliderButton, {
-                    Size = UDim2.new(0, 24, 0, 24)
-                }, 0.9, 4.5)
-                TweenElement(buttonStroke, {Transparency = 0.2}, 0.1)
-                
-                -- Add a pulse effect
-                local pulse = sliderButton:Clone()
-                pulse.Size = UDim2.new(0, 18, 0, 18)
-                pulse.BackgroundTransparency = 0.7
-                pulse.ZIndex = sliderButton.ZIndex - 1
-                pulse.Parent = sliderBarContainer
-                
-                TweenElement(pulse, {
-                    Size = UDim2.new(0, 30, 0, 30),
-                    BackgroundTransparency = 1
-                }, 0.4).Completed:Connect(function()
-                    pulse:Destroy()
-                end)
+                tweenProperty(sliderButton, "Size", UDim2.new(0, 22, 0, 22), 0.2) -- Grow when dragging
             end
         end)
         
@@ -1023,12 +806,7 @@ function GuiLib:CreateWindow(name, size, position)
             if input.UserInputType == Enum.UserInputType.MouseButton1 or 
                input.UserInputType == Enum.UserInputType.Touch then
                 dragging = true
-                
-                SpringTween(sliderButton, {
-                    Size = UDim2.new(0, 24, 0, 24)
-                }, 0.9, 4.5)
-                TweenElement(buttonStroke, {Transparency = 0.2}, 0.1)
-                
+                tweenProperty(sliderButton, "Size", UDim2.new(0, 22, 0, 22), 0.2) -- Grow when dragging
                 currentValue = updateSlider(calculateValueFromPosition(input.Position))
             end
         end)
@@ -1038,11 +816,7 @@ function GuiLib:CreateWindow(name, size, position)
             if (input.UserInputType == Enum.UserInputType.MouseButton1 or 
                 input.UserInputType == Enum.UserInputType.Touch) and dragging then
                 dragging = false
-                
-                SpringTween(sliderButton, {
-                    Size = UDim2.new(0, 18, 0, 18)
-                }, 0.8, 4)
-                TweenElement(buttonStroke, {Transparency = 0.7}, 0.2)
+                tweenProperty(sliderButton, "Size", UDim2.new(0, 18, 0, 18), 0.2) -- Return to normal size
             end
         end)
         
@@ -1069,48 +843,36 @@ function GuiLib:CreateWindow(name, size, position)
     end
 
     function window:AddDropdown(text, options, default, callback)
-        local dropdownContainer = Instance.new("Frame")
-        dropdownContainer.Name = "DropdownContainer"
-        dropdownContainer.Size = UDim2.new(1, -8, 0, 66)
-        dropdownContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
-        dropdownContainer.BackgroundTransparency = 1 -- Start transparent for animation
-        dropdownContainer.BorderSizePixel = 0
-        dropdownContainer.ClipsDescendants = true
-        dropdownContainer.Parent = self.container
-        
-        local containerCorner = Instance.new("UICorner")
-        containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
-        containerCorner.Parent = dropdownContainer
+        local dropdown = Instance.new("Frame")
+        dropdown.Name = "Dropdown"
+        dropdown.Size = UDim2.new(1, -10, 0, 60)
+        dropdown.BackgroundTransparency = 1
+        dropdown.Parent = self.container
         
         local label = Instance.new("TextLabel")
         label.Name = "Label"
-        label.Size = UDim2.new(1, -16, 0, 30)
-        label.Position = UDim2.new(0, 16, 0, 0)
+        label.Size = UDim2.new(1, 0, 0, 20)
         label.BackgroundTransparency = 1
         label.TextColor3 = GuiLib.Settings.DefaultColors.Text
-        label.TextTransparency = 1 -- Start transparent for animation
         label.Text = text or "Dropdown"
         label.TextSize = 14
         label.Font = GuiLib.Settings.FontRegular
         label.TextXAlignment = Enum.TextXAlignment.Left
-        label.Parent = dropdownContainer
+        label.Parent = dropdown
         
         local dropButton = Instance.new("TextButton")
         dropButton.Name = "DropButton"
-        dropButton.Size = UDim2.new(1, -32, 0, 36)
-        dropButton.Position = UDim2.new(0, 16, 0, 30)
-        dropButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.Dropdown
-        dropButton.BackgroundTransparency = 1 -- Start transparent for animation
+        dropButton.Size = UDim2.new(1, 0, 0, 34)
+        dropButton.Position = UDim2.new(0, 0, 0, 22)
+        dropButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
         dropButton.TextColor3 = GuiLib.Settings.DefaultColors.Text
-        dropButton.TextTransparency = 1 -- Start transparent for animation
         dropButton.Text = default or (options and options[1]) or "Select"
         dropButton.TextSize = 14
-        dropButton.Font = GuiLib.Settings.FontSemibold
-        dropButton.AutoButtonColor = false
-        dropButton.Parent = dropdownContainer
+        dropButton.Font = GuiLib.Settings.FontRegular
+        dropButton.Parent = dropdown
         
         local buttonCorner = Instance.new("UICorner")
-        buttonCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
+        buttonCorner.CornerRadius = GuiLib.Settings.CornerRadius
         buttonCorner.Parent = dropButton
         
         local icon = Instance.new("TextLabel")
@@ -1118,8 +880,7 @@ function GuiLib:CreateWindow(name, size, position)
         icon.Size = UDim2.new(0, 20, 0, 20)
         icon.Position = UDim2.new(1, -25, 0.5, -10)
         icon.BackgroundTransparency = 1
-        icon.TextColor3 = GuiLib.Settings.DefaultColors.Accent
-        icon.TextTransparency = 1 -- Start transparent for animation
+        icon.TextColor3 = GuiLib.Settings.DefaultColors.Text
         icon.Text = "▼"
         icon.TextSize = 14
         icon.Font = GuiLib.Settings.FontBold
@@ -1137,199 +898,98 @@ function GuiLib:CreateWindow(name, size, position)
         dropFrame.Parent = dropButton
         
         local frameCorner = Instance.new("UICorner")
-        frameCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
+        frameCorner.CornerRadius = GuiLib.Settings.CornerRadius
         frameCorner.Parent = dropFrame
         
         local optionList = Instance.new("ScrollingFrame")
         optionList.Name = "OptionList"
-        optionList.Size = UDim2.new(1, -8, 1, -8)
-        optionList.Position = UDim2.new(0, 4, 0, 4)
+        optionList.Size = UDim2.new(1, -4, 1, -4)
+        optionList.Position = UDim2.new(0, 2, 0, 2)
         optionList.BackgroundTransparency = 1
         optionList.BorderSizePixel = 0
-        optionList.ScrollBarThickness = 3
+        optionList.ScrollBarThickness = 4
         optionList.ScrollBarImageColor3 = GuiLib.Settings.DefaultColors.ScrollBar
         optionList.ZIndex = 6
         optionList.Parent = dropFrame
         
         local listLayout = Instance.new("UIListLayout")
-        listLayout.Padding = UDim.new(0, 4)
+        listLayout.Padding = UDim.new(0, 2)
         listLayout.FillDirection = Enum.FillDirection.Vertical
         listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         listLayout.SortOrder = Enum.SortOrder.LayoutOrder
         listLayout.Parent = optionList
         
-        -- Animate in with sequence
-        TweenElement(dropdownContainer, {BackgroundTransparency = 0.4}, 0.3)
-        task.delay(0.1, function()
-            TweenElement(label, {TextTransparency = 0}, 0.25)
-        end)
-        task.delay(0.2, function()
-            TweenElement(dropButton, {BackgroundTransparency = 0, TextTransparency = 0}, 0.25)
-            TweenElement(icon, {TextTransparency = 0}, 0.25)
-        end)
-        
         local isOpen = false
         local selectedOption = default or (options and options[1]) or "Select"
-        
-        -- Add a button glow effect
-        local buttonStroke = Instance.new("UIStroke")
-        buttonStroke.Name = "ButtonStroke"
-        buttonStroke.Color = GuiLib.Settings.DefaultColors.Accent
-        buttonStroke.Transparency = 1 -- Start transparent for animation
-        buttonStroke.Thickness = 1.5
-        buttonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-        buttonStroke.Parent = dropButton
-        
-        task.delay(0.3, function()
-            TweenElement(buttonStroke, {Transparency = 0.9}, 0.3)
-        end)
-        
-        -- Hover effects with spring animation
-        dropButton.MouseEnter:Connect(function()
-            TweenElement(buttonStroke, {Transparency = 0.7}, 0.2)
-            SpringTween(dropButton, {
-                BackgroundColor3 = Color3.fromRGB(
-                    math.min(GuiLib.Settings.DefaultColors.Dropdown.R * 255 + 10, 255),
-                    math.min(GuiLib.Settings.DefaultColors.Dropdown.G * 255 + 10, 255),
-                    math.min(GuiLib.Settings.DefaultColors.Dropdown.B * 255 + 10, 255)
-                ),
-                Size = UDim2.new(1, -28, 0, 36)
-            }, 0.8, 4)
-        end)
-        
-        dropButton.MouseLeave:Connect(function()
-            TweenElement(buttonStroke, {Transparency = 0.9}, 0.2)
-            SpringTween(dropButton, {
-                BackgroundColor3 = GuiLib.Settings.DefaultColors.Dropdown,
-                Size = UDim2.new(1, -32, 0, 36)
-            }, 0.8, 4)
-        end)
         
         local function toggleDropdown()
             isOpen = not isOpen
             
             if isOpen then
                 icon.Text = "▲"
-                ElasticOut(icon, {
-                    Position = UDim2.new(1, -25, 0.5, -12),
-                    TextColor3 = GuiLib.Settings.DefaultColors.Accent
-                }, 0.3)
                 dropFrame.Visible = true
-                
-                local optionsHeight = #options * 34 + (#options - 1) * 4
+                local optionsHeight = #options * 30 + (#options - 1) * 2
                 optionsHeight = math.min(optionsHeight, 150) -- Max height
                 
-                -- Expand the container with spring effect
-                SpringTween(dropdownContainer, {
-                    Size = UDim2.new(1, -8, 0, 66 + optionsHeight)
-                }, 0.7, 3.5)
-                
-                -- Expand the dropdown panel with spring effect
-                SpringTween(dropFrame, {
-                    Size = UDim2.new(1, 0, 0, optionsHeight)
-                }, 0.8, 3)
-                
-                optionList.CanvasSize = UDim2.new(0, 0, 0, #options * 34 + (#options - 1) * 4)
-                
-                -- Add a subtle pulse glow to indicate action
-                local pulse = buttonStroke:Clone()
-                pulse.Parent = dropButton
-                pulse.Transparency = 0.5
-                
-                TweenElement(pulse, {Transparency = 1}, 0.5).Completed:Connect(function()
-                    pulse:Destroy()
-                end)
+                tweenProperty(dropFrame, "Size", UDim2.new(1, 0, 0, optionsHeight), 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+                optionList.CanvasSize = UDim2.new(0, 0, 0, #options * 30 + (#options - 1) * 2)
             else
-                ElasticOut(icon, {
-                    Position = UDim2.new(1, -25, 0.5, -10),
-                    TextColor3 = GuiLib.Settings.DefaultColors.Accent
-                }, 0.3)
                 icon.Text = "▼"
-                
-                -- Collapse with spring effect
-                SpringTween(dropdownContainer, {
-                    Size = UDim2.new(1, -8, 0, 66)
-                }, 0.7, 3.5)
-                
-                TweenElement(dropFrame, {
-                    Size = UDim2.new(1, 0, 0, 0)
-                }, 0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In).Completed:Connect(function()
-                    dropFrame.Visible = false
+                tweenProperty(dropFrame, "Size", UDim2.new(1, 0, 0, 0), 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+                delay(0.3, function()
+                    if not isOpen then -- Check again in case it was toggled
+                        dropFrame.Visible = false
+                    end
                 end)
             end
         end
         
         dropButton.MouseButton1Click:Connect(toggleDropdown)
         
-        -- Create option buttons with animated appearance
+        -- Hover effect
+        dropButton.MouseEnter:Connect(function()
+            tweenProperty(dropButton, "BackgroundColor3", Color3.fromRGB(
+                math.min(GuiLib.Settings.DefaultColors.Button.R * 255 + 20, 255),
+                math.min(GuiLib.Settings.DefaultColors.Button.G * 255 + 20, 255),
+                math.min(GuiLib.Settings.DefaultColors.Button.B * 255 + 20, 255)
+            ), 0.2)
+        end)
+        
+        dropButton.MouseLeave:Connect(function()
+            tweenProperty(dropButton, "BackgroundColor3", GuiLib.Settings.DefaultColors.Button, 0.2)
+        end)
+        
+        -- Create option buttons
         if options then
             for i, option in ipairs(options) do
                 local optionButton = Instance.new("TextButton")
                 optionButton.Name = "Option_" .. option
-                optionButton.Size = UDim2.new(1, -8, 0, 30)
+                optionButton.Size = UDim2.new(1, -4, 0, 30)
                 optionButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
-                optionButton.BackgroundTransparency = 0.2
+                optionButton.BackgroundTransparency = 0.5
                 optionButton.TextColor3 = GuiLib.Settings.DefaultColors.Text
                 optionButton.Text = option
                 optionButton.TextSize = 14
                 optionButton.Font = GuiLib.Settings.FontRegular
                 optionButton.ZIndex = 7
-                optionButton.AutoButtonColor = false
                 optionButton.Parent = optionList
                 
                 local optionCorner = Instance.new("UICorner")
-                optionCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
+                optionCorner.CornerRadius = GuiLib.Settings.CornerRadius
                 optionCorner.Parent = optionButton
                 
-                -- Enhanced option hover effect
+                -- Option hover effect
                 optionButton.MouseEnter:Connect(function()
-                    TweenElement(optionButton, {
-                        BackgroundTransparency = 0,
-                        BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonHover,
-                        TextSize = 15 -- Subtle text size increase
-                    }, 0.2)
+                    tweenProperty(optionButton, "BackgroundTransparency", 0.3, 0.2)
                 end)
                 
                 optionButton.MouseLeave:Connect(function()
-                    TweenElement(optionButton, {
-                        BackgroundTransparency = 0.2,
-                        BackgroundColor3 = GuiLib.Settings.DefaultColors.Button,
-                        TextSize = 14 -- Restore text size
-                    }, 0.2)
+                    tweenProperty(optionButton, "BackgroundTransparency", 0.5, 0.2)
                 end)
                 
                 optionButton.MouseButton1Click:Connect(function()
-                    -- Ripple effect when selecting
-                    local ripple = Instance.new("Frame")
-                    ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                    ripple.BackgroundTransparency = 0.7
-                    ripple.BorderSizePixel = 0
-                    ripple.ZIndex = optionButton.ZIndex - 1
-                    ripple.Size = UDim2.new(0, 0, 0, 0)
-                    ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
-                    ripple.AnchorPoint = Vector2.new(0.5, 0.5)
-                    
-                    local rippleCorner = Instance.new("UICorner")
-                    rippleCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
-                    rippleCorner.Parent = ripple
-                    
-                    ripple.Parent = optionButton
-                    
-                    TweenElement(ripple, {
-                        Size = UDim2.new(1, 30, 1, 30),
-                        BackgroundTransparency = 1
-                    }, 0.3).Completed:Connect(function()
-                        ripple:Destroy()
-                    end)
-                    
                     selectedOption = option
-                    
-                    -- Animate text change with fade
-                    TweenElement(dropButton, {TextTransparency = 1}, 0.1).Completed:Connect(function()
-                        dropButton.Text = option
-                        TweenElement(dropButton, {TextTransparency = 0}, 0.1)
-                    end)
-                    
+                    dropButton.Text = option
                     toggleDropdown()
                     
                     if callback then
@@ -1383,83 +1043,27 @@ function GuiLib:CreateWindow(name, size, position)
                 end
             end
             
-            -- Create new option buttons with animation
+            -- Create new option buttons
             for i, option in ipairs(options) do
                 local optionButton = Instance.new("TextButton")
                 optionButton.Name = "Option_" .. option
-                optionButton.Size = UDim2.new(1, -8, 0, 30)
+                optionButton.Size = UDim2.new(1, -4, 0, 30)
                 optionButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
-                optionButton.BackgroundTransparency = 1 -- Start transparent
+                optionButton.BackgroundTransparency = 0.5
                 optionButton.TextColor3 = GuiLib.Settings.DefaultColors.Text
-                optionButton.TextTransparency = 1 -- Start transparent
                 optionButton.Text = option
                 optionButton.TextSize = 14
                 optionButton.Font = GuiLib.Settings.FontRegular
                 optionButton.ZIndex = 7
-                optionButton.AutoButtonColor = false
                 optionButton.Parent = optionList
                 
-                -- Animate in with delay based on index
-                task.delay(i * 0.03, function()
-                    TweenElement(optionButton, {
-                        BackgroundTransparency = 0.2,
-                        TextTransparency = 0
-                    }, 0.25)
-                end)
-                
                 local optionCorner = Instance.new("UICorner")
-                optionCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
+                optionCorner.CornerRadius = GuiLib.Settings.CornerRadius
                 optionCorner.Parent = optionButton
                 
-                -- Enhanced option hover effect
-                optionButton.MouseEnter:Connect(function()
-                    TweenElement(optionButton, {
-                        BackgroundTransparency = 0,
-                        BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonHover,
-                        TextSize = 15
-                    }, 0.2)
-                end)
-                
-                optionButton.MouseLeave:Connect(function()
-                    TweenElement(optionButton, {
-                        BackgroundTransparency = 0.2,
-                        BackgroundColor3 = GuiLib.Settings.DefaultColors.Button,
-                        TextSize = 14
-                    }, 0.2)
-                end)
-                
                 optionButton.MouseButton1Click:Connect(function()
-                    -- Ripple effect
-                    local ripple = Instance.new("Frame")
-                    ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-                    ripple.BackgroundTransparency = 0.7
-                    ripple.BorderSizePixel = 0
-                    ripple.ZIndex = optionButton.ZIndex - 1
-                    ripple.Size = UDim2.new(0, 0, 0, 0)
-                    ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
-                    ripple.AnchorPoint = Vector2.new(0.5, 0.5)
-                    
-                    local rippleCorner = Instance.new("UICorner")
-                    rippleCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
-                    rippleCorner.Parent = ripple
-                    
-                    ripple.Parent = optionButton
-                    
-                    TweenElement(ripple, {
-                        Size = UDim2.new(1, 30, 1, 30),
-                        BackgroundTransparency = 1
-                    }, 0.3).Completed:Connect(function()
-                        ripple:Destroy()
-                    end)
-                    
                     selectedOption = option
-                    
-                    -- Animate text change
-                    TweenElement(dropButton, {TextTransparency = 1}, 0.1).Completed:Connect(function()
-                        dropButton.Text = option
-                        TweenElement(dropButton, {TextTransparency = 0}, 0.1)
-                    end)
-                    
+                    dropButton.Text = option
                     toggleDropdown()
                     
                     if callback then
@@ -1468,7 +1072,7 @@ function GuiLib:CreateWindow(name, size, position)
                 end)
             end
             
-            optionList.CanvasSize = UDim2.new(0, 0, 0, #options * 34 + (#options - 1) * 4)
+            optionList.CanvasSize = UDim2.new(0, 0, 0, #options * 30 + (#options - 1) * 2)
             
             if not keepSelection or not table.find(options, selectedOption) then
                 selectedOption = options[1] or "Select"
@@ -1482,51 +1086,33 @@ function GuiLib:CreateWindow(name, size, position)
     function window:AddColorPicker(text, default, callback)
         default = default or Color3.fromRGB(255, 255, 255)
         
-        local colorPickerContainer = Instance.new("Frame")
-        colorPickerContainer.Name = "ColorPickerContainer"
-        colorPickerContainer.Size = UDim2.new(1, -8, 0, 36)
-        colorPickerContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
-        colorPickerContainer.BackgroundTransparency = 1 -- Start transparent for animation
-        colorPickerContainer.BorderSizePixel = 0
-        colorPickerContainer.Parent = self.container
-        
-        local containerCorner = Instance.new("UICorner")
-        containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
-        containerCorner.Parent = colorPickerContainer
+        local colorPicker = Instance.new("Frame")
+        colorPicker.Name = "ColorPicker"
+        colorPicker.Size = UDim2.new(1, -10, 0, 35)
+        colorPicker.BackgroundTransparency = 1
+        colorPicker.Parent = self.container
         
         local label = Instance.new("TextLabel")
         label.Name = "Label"
-        label.Size = UDim2.new(1, -66, 1, 0)
-        label.Position = UDim2.new(0, 16, 0, 0)
+        label.Size = UDim2.new(1, -50, 1, 0)
         label.BackgroundTransparency = 1
         label.TextColor3 = GuiLib.Settings.DefaultColors.Text
-        label.TextTransparency = 1 -- Start transparent for animation
         label.Text = text or "Color Picker"
         label.TextSize = 14
         label.Font = GuiLib.Settings.FontRegular
         label.TextXAlignment = Enum.TextXAlignment.Left
-        label.Parent = colorPickerContainer
+        label.Parent = colorPicker
         
         local colorDisplay = Instance.new("Frame")
         colorDisplay.Name = "ColorDisplay"
-        colorDisplay.Size = UDim2.new(0, 36, 0, 26)
-        colorDisplay.Position = UDim2.new(1, -46, 0.5, -13)
+        colorDisplay.Size = UDim2.new(0, 35, 0, 35)
+        colorDisplay.Position = UDim2.new(1, -35, 0, 0)
         colorDisplay.BackgroundColor3 = default
-        colorDisplay.BackgroundTransparency = 1 -- Start transparent for animation
-        colorDisplay.BorderSizePixel = 0
-        colorDisplay.Parent = colorPickerContainer
+        colorDisplay.Parent = colorPicker
         
         local displayCorner = Instance.new("UICorner")
-        displayCorner.CornerRadius = UDim.new(0, 4)
+        displayCorner.CornerRadius = GuiLib.Settings.CornerRadius
         displayCorner.Parent = colorDisplay
-        
-        -- Add a stroke to the color display
-        local displayStroke = Instance.new("UIStroke")
-        displayStroke.Name = "DisplayStroke"
-        displayStroke.Color = Color3.fromRGB(255, 255, 255)
-        displayStroke.Transparency = 1 -- Start transparent for animation
-        displayStroke.Thickness = 1
-        displayStroke.Parent = colorDisplay
         
         local clickButton = Instance.new("TextButton")
         clickButton.Name = "ClickButton"
@@ -1535,69 +1121,44 @@ function GuiLib:CreateWindow(name, size, position)
         clickButton.Text = ""
         clickButton.Parent = colorDisplay
         
-        -- Animate in with sequence
-        TweenElement(colorPickerContainer, {BackgroundTransparency = 0.4}, 0.3)
-        task.delay(0.1, function()
-            TweenElement(label, {TextTransparency = 0}, 0.3)
-        end)
-        task.delay(0.2, function()
-            TweenElement(colorDisplay, {BackgroundTransparency = 0}, 0.3)
-            TweenElement(displayStroke, {Transparency = 0.8}, 0.3)
-        end)
-        
         -- Color picker functionality
         local pickerFrame = Instance.new("Frame")
         pickerFrame.Name = "PickerFrame"
-        pickerFrame.Size = UDim2.new(0, 220, 0, 240)
-        pickerFrame.Position = UDim2.new(1, -220, 1, 10)
-        pickerFrame.BackgroundColor3 = GuiLib.Settings.DefaultColors.BackgroundSecondary
+        pickerFrame.Size = UDim2.new(0, 240, 0, 240)
+        pickerFrame.Position = UDim2.new(1, -240, 1, 10)
+        pickerFrame.BackgroundColor3 = GuiLib.Settings.DefaultColors.Background
         pickerFrame.BackgroundTransparency = 0.1
         pickerFrame.BorderSizePixel = 0
         pickerFrame.Visible = false
         pickerFrame.ZIndex = 10
-        pickerFrame.Parent = colorPickerContainer
+        pickerFrame.Parent = colorPicker
         
         local pickerCorner = Instance.new("UICorner")
         pickerCorner.CornerRadius = GuiLib.Settings.CornerRadius
         pickerCorner.Parent = pickerFrame
         
-        -- Add a drop shadow to the picker panel
+        -- Shadow for picker frame
         local pickerShadow = Instance.new("ImageLabel")
-        pickerShadow.Name = "PickerShadow"
-        pickerShadow.Size = UDim2.new(1, 40, 1, 40)
-        pickerShadow.Position = UDim2.new(0, -20, 0, -20)
+        pickerShadow.Name = "Shadow"
+        pickerShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+        pickerShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+        pickerShadow.Size = UDim2.new(1, 20, 1, 20)
         pickerShadow.BackgroundTransparency = 1
         pickerShadow.Image = "rbxassetid://5554236805"
-        pickerShadow.ImageColor3 = GuiLib.Settings.DefaultColors.Shadow
+        pickerShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
         pickerShadow.ImageTransparency = 0.6
         pickerShadow.ScaleType = Enum.ScaleType.Slice
         pickerShadow.SliceCenter = Rect.new(23, 23, 277, 277)
         pickerShadow.ZIndex = 9
         pickerShadow.Parent = pickerFrame
         
-        -- Add a title to the picker
-        local pickerTitle = Instance.new("TextLabel")
-        pickerTitle.Name = "PickerTitle"
-        pickerTitle.Size = UDim2.new(1, 0, 0, 30)
-        pickerTitle.BackgroundTransparency = 1
-        pickerTitle.TextColor3 = GuiLib.Settings.DefaultColors.Text
-        pickerTitle.Text = "Select Color"
-        pickerTitle.TextSize = 14
-        pickerTitle.Font = GuiLib.Settings.FontSemibold
-        pickerTitle.ZIndex = 11
-        pickerTitle.Parent = pickerFrame
-        
         -- Hue selector
         local hueFrame = Instance.new("Frame")
         hueFrame.Name = "HueFrame"
-        hueFrame.Size = UDim2.new(0, 190, 0, 20)
-        hueFrame.Position = UDim2.new(0.5, -95, 0, 190)
+        hueFrame.Size = UDim2.new(0, 200, 0, 20)
+        hueFrame.Position = UDim2.new(0.5, -100, 0, 200)
         hueFrame.ZIndex = 11
         hueFrame.Parent = pickerFrame
-        
-        local hueCorner = Instance.new("UICorner")
-        hueCorner.CornerRadius = UDim.new(0, 4)
-        hueCorner.Parent = hueFrame
         
         local hueGradient = Instance.new("UIGradient")
         hueGradient.Color = ColorSequence.new({
@@ -1611,22 +1172,24 @@ function GuiLib:CreateWindow(name, size, position)
         })
         hueGradient.Parent = hueFrame
         
+        local hueCorner = Instance.new("UICorner")
+        hueCorner.CornerRadius = UDim.new(0, 4)
+        hueCorner.Parent = hueFrame
+        
         local hueSelector = Instance.new("Frame")
         hueSelector.Name = "HueSelector"
-        hueSelector.Size = UDim2.new(0, 6, 1, 6)
-        hueSelector.Position = UDim2.new(0, 0, 0, -3)
+        hueSelector.Size = UDim2.new(0, 4, 1, 4)
+        hueSelector.Position = UDim2.new(0, 0, 0, -2)
         hueSelector.BorderSizePixel = 1
         hueSelector.BorderColor3 = Color3.fromRGB(255, 255, 255)
-        hueSelector.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        hueSelector.BackgroundTransparency = 0.7
         hueSelector.ZIndex = 12
         hueSelector.Parent = hueFrame
         
         -- Color saturation/value picker
         local colorField = Instance.new("Frame")
         colorField.Name = "ColorField"
-        colorField.Size = UDim2.new(0, 190, 0, 150)
-        colorField.Position = UDim2.new(0.5, -95, 0, 35)
+        colorField.Size = UDim2.new(0, 200, 0, 180)
+        colorField.Position = UDim2.new(0.5, -100, 0, 10)
         colorField.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
         colorField.BorderSizePixel = 0
         colorField.ZIndex = 11
@@ -1670,60 +1233,13 @@ function GuiLib:CreateWindow(name, size, position)
         
         local colorSelector = Instance.new("Frame")
         colorSelector.Name = "ColorSelector"
-        colorSelector.Size = UDim2.new(0, 14, 0, 14)
+        colorSelector.Size = UDim2.new(0, 10, 0, 10)
         colorSelector.AnchorPoint = Vector2.new(0.5, 0.5)
         colorSelector.BackgroundTransparency = 1
         colorSelector.BorderSizePixel = 2
         colorSelector.BorderColor3 = Color3.fromRGB(255, 255, 255)
         colorSelector.ZIndex = 13
         colorSelector.Parent = colorField
-        
-        -- Add a circle inside the selector
-        local selectorInner = Instance.new("Frame")
-        selectorInner.Name = "SelectorInner"
-        selectorInner.Size = UDim2.new(0, 6, 0, 6)
-        selectorInner.Position = UDim2.new(0.5, -3, 0.5, -3)
-        selectorInner.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        selectorInner.BorderSizePixel = 0
-        selectorInner.ZIndex = 14
-        selectorInner.Parent = colorSelector
-        
-        local innerCorner = Instance.new("UICorner")
-        innerCorner.CornerRadius = UDim.new(1, 0)
-        innerCorner.Parent = selectorInner
-        
-        -- Add current color display
-        local currentColorDisplay = Instance.new("Frame")
-        currentColorDisplay.Name = "CurrentColor"
-        currentColorDisplay.Size = UDim2.new(0, 190, 0, 30)
-        currentColorDisplay.Position = UDim2.new(0.5, -95, 1, -40)
-        currentColorDisplay.BackgroundColor3 = default
-        currentColorDisplay.BorderSizePixel = 0
-        currentColorDisplay.ZIndex = 11
-        currentColorDisplay.Parent = pickerFrame
-        
-        local currentColorCorner = Instance.new("UICorner")
-        currentColorCorner.CornerRadius = UDim.new(0, 4)
-        currentColorCorner.Parent = currentColorDisplay
-        
-        -- Enhanced hover effect for color display
-        clickButton.MouseEnter:Connect(function()
-            SpringTween(colorDisplay, {
-                Size = UDim2.new(0, 40, 0, 28),
-                Position = UDim2.new(1, -48, 0.5, -14)
-            }, 0.8, 4)
-            TweenElement(displayStroke, {Transparency = 0.4}, 0.2)
-            TweenElement(colorPickerContainer, {BackgroundTransparency = 0.2}, 0.2)
-        end)
-        
-        clickButton.MouseLeave:Connect(function()
-            SpringTween(colorDisplay, {
-                Size = UDim2.new(0, 36, 0, 26),
-                Position = UDim2.new(1, -46, 0.5, -13)
-            }, 0.8, 4)
-            TweenElement(displayStroke, {Transparency = 0.8}, 0.2)
-            TweenElement(colorPickerContainer, {BackgroundTransparency = 0.4}, 0.2)
-        end)
         
         -- Logic and functionality
         local pickerOpen = false
@@ -1732,11 +1248,8 @@ function GuiLib:CreateWindow(name, size, position)
         
         local function updateColor()
             local hsv = Color3.fromHSV(hue, saturation, value)
-            
-            -- Animate color changes
-            TweenElement(colorDisplay, {BackgroundColor3 = hsv}, 0.2)
-            TweenElement(currentColorDisplay, {BackgroundColor3 = hsv}, 0.2)
-            TweenElement(colorField, {BackgroundColor3 = Color3.fromHSV(hue, 1, 1)}, 0.2)
+            tweenProperty(colorDisplay, "BackgroundColor3", hsv, 0.2)
+            colorField.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
             
             if callback then
                 callback(hsv)
@@ -1746,15 +1259,11 @@ function GuiLib:CreateWindow(name, size, position)
         end
         
         local function updateSelectors()
-            -- Update hue selector position with spring animation
-            SpringTween(hueSelector, {
-                Position = UDim2.new(hue, -3, 0, -3)
-            }, 0.7, 3.5)
+            -- Update hue selector position
+            hueSelector.Position = UDim2.new(hue, -2, 0, -2)
             
-            -- Update color selector position with spring animation
-            SpringTween(colorSelector, {
-                Position = UDim2.new(saturation, 0, 1 - value, 0)
-            }, 0.7, 3.5)
+            -- Update color selector position
+            colorSelector.Position = UDim2.new(saturation, 0, 1 - value, 0)
             
             -- Update the color
             selectedColor = updateColor()
@@ -1765,27 +1274,16 @@ function GuiLib:CreateWindow(name, size, position)
             
             if pickerOpen then
                 pickerFrame.Visible = true
-                pickerFrame.Size = UDim2.new(0, 0, 0, 0)
-                pickerFrame.BackgroundTransparency = 1
-                pickerShadow.ImageTransparency = 1
-                
-                -- Animate opening
-                SpringTween(pickerFrame, {
-                    Size = UDim2.new(0, 220, 0, 240),
-                    BackgroundTransparency = 0.1
-                }, 0.7, 3)
-                
-                TweenElement(pickerShadow, {ImageTransparency = 0.6}, 0.4)
+                tweenProperty(pickerFrame, "BackgroundTransparency", 0.1, 0.3)
+                tweenProperty(pickerFrame, "Size", UDim2.new(0, 240, 0, 240), 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
             else
-                -- Animate closing
-                TweenElement(pickerFrame, {
-                    Size = UDim2.new(0, 0, 0, 0),
-                    BackgroundTransparency = 1
-                }, 0.3).Completed:Connect(function()
-                    pickerFrame.Visible = false
+                tweenProperty(pickerFrame, "BackgroundTransparency", 1, 0.3)
+                tweenProperty(pickerFrame, "Size", UDim2.new(0, 240, 0, 0), 0.3, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+                delay(0.3, function()
+                    if not pickerOpen then -- Check again in case it was reopened
+                        pickerFrame.Visible = false
+                    end
                 end)
-                
-                TweenElement(pickerShadow, {ImageTransparency = 1}, 0.2)
             end
         end
         
@@ -1826,55 +1324,15 @@ function GuiLib:CreateWindow(name, size, position)
         hue, saturation, value = rgbToHsv(default)
         updateSelectors()
         
-        -- Event handlers with enhanced feedback
-        clickButton.MouseButton1Click:Connect(function()
-            -- Add a pulse effect
-            local pulse = colorDisplay:Clone()
-            pulse.Size = colorDisplay.Size
-            pulse.Position = colorDisplay.Position
-            pulse.BackgroundTransparency = 0.7
-            pulse.ZIndex = colorDisplay.ZIndex - 1
-            pulse.Parent = colorPickerContainer
-            
-            TweenElement(pulse, {
-                Size = UDim2.new(0, pulse.Size.X.Offset + 16, 0, pulse.Size.Y.Offset + 16),
-                Position = UDim2.new(
-                    pulse.Position.X.Scale,
-                    pulse.Position.X.Offset - 8, 
-                    pulse.Position.Y.Scale,
-                    pulse.Position.Y.Offset - 8
-                ),
-                BackgroundTransparency = 1
-            }, 0.3).Completed:Connect(function()
-                pulse:Destroy()
-            end)
-            
-            togglePicker()
-        end)
+        -- Event handlers
+        clickButton.MouseButton1Click:Connect(togglePicker)
         
-        -- Enhanced hue interaction with feedback
         hueFrame.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local absoluteX = input.Position.X - hueFrame.AbsolutePosition.X
                 local huePercent = math.clamp(absoluteX / hueFrame.AbsoluteSize.X, 0, 1)
                 hue = huePercent
                 updateSelectors()
-                
-                -- Add a highlight effect
-                SpringTween(hueSelector, {
-                    Size = UDim2.new(0, 8, 1, 8)
-                }, 0.8, 4)
-                TweenElement(hueSelector, {BackgroundTransparency = 0.5}, 0.2)
-            end
-        end)
-        
-        hueFrame.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                -- Return to normal size
-                SpringTween(hueSelector, {
-                    Size = UDim2.new(0, 6, 1, 6)
-                }, 0.8, 4)
-                TweenElement(hueSelector, {BackgroundTransparency = 0.7}, 0.2)
             end
         end)
         
@@ -1887,7 +1345,6 @@ function GuiLib:CreateWindow(name, size, position)
             end
         end)
         
-        -- Enhanced color field interaction
         colorField.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local absoluteX = input.Position.X - colorField.AbsolutePosition.X
@@ -1895,28 +1352,6 @@ function GuiLib:CreateWindow(name, size, position)
                 saturation = math.clamp(absoluteX / colorField.AbsoluteSize.X, 0, 1)
                 value = 1 - math.clamp(absoluteY / colorField.AbsoluteSize.Y, 0, 1)
                 updateSelectors()
-                
-                -- Add a highlight effect
-                SpringTween(colorSelector, {
-                    BorderSizePixel = 3
-                }, 0.8, 4)
-                SpringTween(selectorInner, {
-                    Size = UDim2.new(0, 8, 0, 8),
-                    Position = UDim2.new(0.5, -4, 0.5, -4)
-                }, 0.8, 4)
-            end
-        end)
-        
-        colorField.InputEnded:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                -- Return to normal size
-                SpringTween(colorSelector, {
-                    BorderSizePixel = 2
-                }, 0.8, 4)
-                SpringTween(selectorInner, {
-                    Size = UDim2.new(0, 6, 0, 6),
-                    Position = UDim2.new(0.5, -3, 0.5, -3)
-                }, 0.8, 4)
             end
         end)
         
@@ -1964,121 +1399,67 @@ function GuiLib:CreateWindow(name, size, position)
     end
 
     function window:AddTextBox(text, placeholder, defaultText, callback)
-        local textBoxContainer = Instance.new("Frame")
-        textBoxContainer.Name = "TextBoxContainer"
-        textBoxContainer.Size = UDim2.new(1, -8, 0, 66)
-        textBoxContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
-        textBoxContainer.BackgroundTransparency = 1 -- Start transparent for animation
-        textBoxContainer.BorderSizePixel = 0
-        textBoxContainer.Parent = self.container
-        
-        local containerCorner = Instance.new("UICorner")
-        containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
-        containerCorner.Parent = textBoxContainer
+        local textBox = Instance.new("Frame")
+        textBox.Name = "TextBox"
+        textBox.Size = UDim2.new(1, -10, 0, 55)
+        textBox.BackgroundTransparency = 1
+        textBox.Parent = self.container
         
         local label = Instance.new("TextLabel")
         label.Name = "Label"
-        label.Size = UDim2.new(1, -32, 0, 30)
-        label.Position = UDim2.new(0, 16, 0, 0)
+        label.Size = UDim2.new(1, 0, 0, 20)
         label.BackgroundTransparency = 1
         label.TextColor3 = GuiLib.Settings.DefaultColors.Text
-        label.TextTransparency = 1 -- Start transparent for animation
         label.Text = text or "Text Input"
         label.TextSize = 14
         label.Font = GuiLib.Settings.FontRegular
         label.TextXAlignment = Enum.TextXAlignment.Left
-        label.Parent = textBoxContainer
+        label.Parent = textBox
+        
+        local inputContainer = Instance.new("Frame")
+        inputContainer.Name = "InputContainer"
+        inputContainer.Size = UDim2.new(1, 0, 0, 35)
+        inputContainer.Position = UDim2.new(0, 0, 0, 20)
+        inputContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
+        inputContainer.BackgroundTransparency = 0.2
+        inputContainer.Parent = textBox
+        
+        local containerCorner = Instance.new("UICorner")
+        containerCorner.CornerRadius = GuiLib.Settings.CornerRadius
+        containerCorner.Parent = inputContainer
         
         local inputBox = Instance.new("TextBox")
         inputBox.Name = "InputBox"
-        inputBox.Size = UDim2.new(1, -32, 0, 36)
-        inputBox.Position = UDim2.new(0, 16, 0, 30)
-        inputBox.BackgroundColor3 = GuiLib.Settings.DefaultColors.Dropdown
-        inputBox.BackgroundTransparency = 1 -- Start transparent for animation
+        inputBox.Size = UDim2.new(1, -16, 1, 0)
+        inputBox.Position = UDim2.new(0, 8, 0, 0)
+        inputBox.BackgroundTransparency = 1
         inputBox.TextColor3 = GuiLib.Settings.DefaultColors.Text
-        inputBox.TextTransparency = 1 -- Start transparent for animation
         inputBox.PlaceholderText = placeholder or "Enter text here..."
-        inputBox.PlaceholderColor3 = GuiLib.Settings.DefaultColors.TextDimmed
+        inputBox.PlaceholderColor3 = Color3.fromRGB(120, 120, 120)
         inputBox.Text = defaultText or ""
         inputBox.TextSize = 14
         inputBox.Font = GuiLib.Settings.FontRegular
         inputBox.TextXAlignment = Enum.TextXAlignment.Left
         inputBox.ClearTextOnFocus = false
         inputBox.ClipsDescendants = true
-        inputBox.Parent = textBoxContainer
+        inputBox.Parent = inputContainer
         
-        local boxCorner = Instance.new("UICorner")
-        boxCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
-        boxCorner.Parent = inputBox
-        
-        local padding = Instance.new("UIPadding")
-        padding.PaddingLeft = UDim.new(0, 10)
-        padding.PaddingRight = UDim.new(0, 10)
-        padding.Parent = inputBox
-        
-        -- Add a glow effect
-        local boxStroke = Instance.new("UIStroke")
-        boxStroke.Name = "BoxStroke"
-        boxStroke.Color = GuiLib.Settings.DefaultColors.Accent
-        boxStroke.Transparency = 1 -- Start transparent for animation
-        boxStroke.Thickness = 1.5
-        boxStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-        boxStroke.Parent = inputBox
-        
-        -- Animate in with sequence
-        TweenElement(textBoxContainer, {BackgroundTransparency = 0.4}, 0.3)
-        task.delay(0.1, function()
-            TweenElement(label, {TextTransparency = 0}, 0.25)
-        end)
-        task.delay(0.2, function()
-            TweenElement(inputBox, {BackgroundTransparency = 0, TextTransparency = 0}, 0.25)
-            TweenElement(boxStroke, {Transparency = 0.9}, 0.25)
-        end)
-        
-        -- Enhanced focus effects
+        -- Add focused effect
         inputBox.Focused:Connect(function()
-            -- Spring animation for focusing
-            SpringTween(inputBox, {
-                Size = UDim2.new(1, -24, 0, 36),
-                Position = UDim2.new(0, 12, 0, 30),
-                BackgroundColor3 = Color3.fromRGB(
-                    math.min(GuiLib.Settings.DefaultColors.Dropdown.R * 255 + 15, 255),
-                    math.min(GuiLib.Settings.DefaultColors.Dropdown.G * 255 + 15, 255),
-                    math.min(GuiLib.Settings.DefaultColors.Dropdown.B * 255 + 15, 255)
-                )
-            }, 0.8, 4)
-            TweenElement(boxStroke, {Transparency = 0.4}, 0.2)
+            tweenProperty(inputContainer, "BackgroundColor3", Color3.fromRGB(
+                math.min(GuiLib.Settings.DefaultColors.Button.R * 255 + 20, 255),
+                math.min(GuiLib.Settings.DefaultColors.Button.G * 255 + 20, 255),
+                math.min(GuiLib.Settings.DefaultColors.Button.B * 255 + 20, 255)
+            ), 0.2)
             
-            -- Also highlight the container
-            TweenElement(textBoxContainer, {BackgroundTransparency = 0.2}, 0.2)
+            tweenProperty(inputContainer, "BackgroundTransparency", 0, 0.2)
         end)
         
         inputBox.FocusLost:Connect(function(enterPressed)
-            -- Spring animation for unfocusing
-            SpringTween(inputBox, {
-                Size = UDim2.new(1, -32, 0, 36),
-                Position = UDim2.new(0, 16, 0, 30),
-                BackgroundColor3 = GuiLib.Settings.DefaultColors.Dropdown
-            }, 0.8, 4)
-            TweenElement(boxStroke, {Transparency = 0.9}, 0.2)
-            TweenElement(textBoxContainer, {BackgroundTransparency = 0.4}, 0.2)
+            tweenProperty(inputContainer, "BackgroundColor3", GuiLib.Settings.DefaultColors.Button, 0.2)
+            tweenProperty(inputContainer, "BackgroundTransparency", 0.2, 0.2)
             
             if enterPressed and callback then
-                -- Add a flash effect to show submission
-                local flash = inputBox:Clone()
-                flash.Name = "SubmitFlash"
-                flash.Size = inputBox.Size
-                flash.Position = inputBox.Position
-                flash.BackgroundColor3 = GuiLib.Settings.DefaultColors.Accent
-                flash.BackgroundTransparency = 0.8
-                flash.Text = ""
-                flash.ZIndex = inputBox.ZIndex - 1
-                flash.Parent = textBoxContainer
-                
-                TweenElement(flash, {BackgroundTransparency = 1}, 0.5).Completed:Connect(function()
-                    flash:Destroy()
-                end)
-                
                 callback(inputBox.Text)
             end
         end)
@@ -2094,11 +1475,7 @@ function GuiLib:CreateWindow(name, size, position)
         local textBoxFunctions = {}
         
         function textBoxFunctions:Set(text)
-            -- Animate text change
-            TweenElement(inputBox, {TextTransparency = 1}, 0.15).Completed:Connect(function()
-                inputBox.Text = text or ""
-                TweenElement(inputBox, {TextTransparency = 0}, 0.15)
-            end)
+            inputBox.Text = text or ""
         end
         
         function textBoxFunctions:Get()
@@ -2128,165 +1505,89 @@ end
 
 -- Predefined themes
 GuiLib.Themes = {
-    Modern = {
-        DefaultColors = {
-            Background = Color3.fromRGB(35, 35, 40),
-            BackgroundSecondary = Color3.fromRGB(45, 45, 50),
-            Title = Color3.fromRGB(25, 25, 30),
-            Button = Color3.fromRGB(55, 55, 65),
-            ButtonHover = Color3.fromRGB(65, 65, 75),
-            ButtonPressed = Color3.fromRGB(45, 45, 55),
-            ButtonEnabled = Color3.fromRGB(45, 180, 90),
-            ButtonDisabled = Color3.fromRGB(200, 65, 65),
-            Text = Color3.fromRGB(240, 240, 245),
-            TextDimmed = Color3.fromRGB(180, 180, 190),
-            Accent = Color3.fromRGB(100, 120, 255),
-            AccentDark = Color3.fromRGB(80, 100, 220),
-            Slider = Color3.fromRGB(70, 70, 80),
-            SliderFill = Color3.fromRGB(100, 120, 255),
-            Toggle = Color3.fromRGB(55, 55, 65),
-            ToggleEnabled = Color3.fromRGB(100, 120, 255),
-            Dropdown = Color3.fromRGB(55, 55, 65),
-            ScrollBar = Color3.fromRGB(75, 75, 85),
-            Shadow = Color3.fromRGB(0, 0, 5)
-        }
-    },
     Dark = {
         DefaultColors = {
-            Background = Color3.fromRGB(25, 25, 30),
-            BackgroundSecondary = Color3.fromRGB(35, 35, 40),
-            Title = Color3.fromRGB(20, 20, 25),
-            Button = Color3.fromRGB(45, 45, 55),
-            ButtonHover = Color3.fromRGB(55, 55, 65),
-            ButtonPressed = Color3.fromRGB(35, 35, 45),
-            ButtonEnabled = Color3.fromRGB(40, 160, 80),
-            ButtonDisabled = Color3.fromRGB(180, 60, 60),
-            Text = Color3.fromRGB(230, 230, 240),
-            TextDimmed = Color3.fromRGB(170, 170, 180),
-            Accent = Color3.fromRGB(90, 110, 235),
-            AccentDark = Color3.fromRGB(70, 90, 210),
-            Slider = Color3.fromRGB(60, 60, 70),
-            SliderFill = Color3.fromRGB(90, 110, 235),
-            Toggle = Color3.fromRGB(45, 45, 55),
-            ToggleEnabled = Color3.fromRGB(90, 110, 235),
-            Dropdown = Color3.fromRGB(45, 45, 55),
-            ScrollBar = Color3.fromRGB(65, 65, 75),
-            Shadow = Color3.fromRGB(0, 0, 5)
+            Background = Color3.fromRGB(30, 30, 30),
+            Title = Color3.fromRGB(50, 50, 50),
+            Button = Color3.fromRGB(50, 50, 50),
+            ButtonEnabled = Color3.fromRGB(50, 150, 50),
+            ButtonDisabled = Color3.fromRGB(150, 50, 50),
+            Text = Color3.fromRGB(255, 255, 255),
+            Slider = Color3.fromRGB(100, 100, 100),
+            SliderFill = Color3.fromRGB(0, 162, 255),
+            Toggle = Color3.fromRGB(70, 70, 70),
+            ToggleEnabled = Color3.fromRGB(0, 162, 255),
+            Dropdown = Color3.fromRGB(40, 40, 40),
+            ScrollBar = Color3.fromRGB(60, 60, 60),
+            Accent = Color3.fromRGB(0, 162, 255)
         }
     },
     Light = {
         DefaultColors = {
-            Background = Color3.fromRGB(240, 240, 245),
-            BackgroundSecondary = Color3.fromRGB(230, 230, 235),
-            Title = Color3.fromRGB(250, 250, 255),
-            Button = Color3.fromRGB(220, 220, 230),
-            ButtonHover = Color3.fromRGB(210, 210, 220),
-            ButtonPressed = Color3.fromRGB(200, 200, 210),
-            ButtonEnabled = Color3.fromRGB(80, 190, 120),
-            ButtonDisabled = Color3.fromRGB(220, 100, 100),
-            Text = Color3.fromRGB(60, 60, 70),
-            TextDimmed = Color3.fromRGB(120, 120, 130),
-            Accent = Color3.fromRGB(70, 100, 245),
-            AccentDark = Color3.fromRGB(50, 80, 225),
-            Slider = Color3.fromRGB(200, 200, 210),
-            SliderFill = Color3.fromRGB(70, 100, 245),
-            Toggle = Color3.fromRGB(220, 220, 230),
-            ToggleEnabled = Color3.fromRGB(70, 100, 245),
-            Dropdown = Color3.fromRGB(220, 220, 230),
-            ScrollBar = Color3.fromRGB(190, 190, 200),
-            Shadow = Color3.fromRGB(180, 180, 190)
+            Background = Color3.fromRGB(230, 230, 230),
+            Title = Color3.fromRGB(200, 200, 200),
+            Button = Color3.fromRGB(200, 200, 200),
+            ButtonEnabled = Color3.fromRGB(100, 200, 100),
+            ButtonDisabled = Color3.fromRGB(200, 100, 100),
+            Text = Color3.fromRGB(50, 50, 50),
+            Slider = Color3.fromRGB(180, 180, 180),
+            SliderFill = Color3.fromRGB(0, 122, 215),
+            Toggle = Color3.fromRGB(170, 170, 170),
+            ToggleEnabled = Color3.fromRGB(0, 122, 215),
+            Dropdown = Color3.fromRGB(210, 210, 210),
+            ScrollBar = Color3.fromRGB(180, 180, 180),
+            Accent = Color3.fromRGB(0, 122, 215)
         }
     },
     BlueTheme = {
         DefaultColors = {
-            Background = Color3.fromRGB(20, 30, 55),
-            BackgroundSecondary = Color3.fromRGB(30, 40, 65),
-            Title = Color3.fromRGB(15, 25, 45),
-            Button = Color3.fromRGB(35, 45, 75),
-            ButtonHover = Color3.fromRGB(45, 55, 85),
-            ButtonPressed = Color3.fromRGB(25, 35, 65),
-            ButtonEnabled = Color3.fromRGB(40, 170, 100),
-            ButtonDisabled = Color3.fromRGB(190, 70, 70),
-            Text = Color3.fromRGB(230, 240, 255),
-            TextDimmed = Color3.fromRGB(170, 180, 210),
-            Accent = Color3.fromRGB(65, 130, 255),
-            AccentDark = Color3.fromRGB(50, 110, 235),
-            Slider = Color3.fromRGB(40, 50, 80),
-            SliderFill = Color3.fromRGB(65, 130, 255),
-            Toggle = Color3.fromRGB(35, 45, 75),
-            ToggleEnabled = Color3.fromRGB(65, 130, 255),
-            Dropdown = Color3.fromRGB(35, 45, 75),
-            ScrollBar = Color3.fromRGB(45, 55, 85),
-            Shadow = Color3.fromRGB(5, 10, 20)
+            Background = Color3.fromRGB(20, 30, 50),
+            Title = Color3.fromRGB(30, 40, 60),
+            Button = Color3.fromRGB(40, 50, 70),
+            ButtonEnabled = Color3.fromRGB(50, 150, 220),
+            ButtonDisabled = Color3.fromRGB(150, 50, 50),
+            Text = Color3.fromRGB(255, 255, 255),
+            Slider = Color3.fromRGB(50, 60, 80),
+            SliderFill = Color3.fromRGB(50, 150, 220),
+            Toggle = Color3.fromRGB(40, 50, 70),
+            ToggleEnabled = Color3.fromRGB(50, 150, 220),
+            Dropdown = Color3.fromRGB(30, 40, 60),
+            ScrollBar = Color3.fromRGB(50, 60, 80),
+            Accent = Color3.fromRGB(50, 150, 220)
         }
     },
     RedTheme = {
         DefaultColors = {
-            Background = Color3.fromRGB(45, 25, 30),
-            BackgroundSecondary = Color3.fromRGB(55, 35, 40),
-            Title = Color3.fromRGB(40, 20, 25),
-            Button = Color3.fromRGB(65, 40, 45),
-            ButtonHover = Color3.fromRGB(75, 50, 55),
-            ButtonPressed = Color3.fromRGB(55, 30, 35),
-            ButtonEnabled = Color3.fromRGB(50, 170, 100),
-            ButtonDisabled = Color3.fromRGB(50, 50, 180),
-            Text = Color3.fromRGB(240, 230, 230),
-            TextDimmed = Color3.fromRGB(200, 180, 180),
-            Accent = Color3.fromRGB(230, 80, 100),
-            AccentDark = Color3.fromRGB(210, 60, 80),
-            Slider = Color3.fromRGB(75, 45, 50),
-            SliderFill = Color3.fromRGB(230, 80, 100),
-            Toggle = Color3.fromRGB(65, 40, 45),
-            ToggleEnabled = Color3.fromRGB(230, 80, 100),
-            Dropdown = Color3.fromRGB(65, 40, 45),
-            ScrollBar = Color3.fromRGB(75, 50, 55),
-            Shadow = Color3.fromRGB(20, 10, 10)
+            Background = Color3.fromRGB(50, 25, 25),
+            Title = Color3.fromRGB(70, 35, 35),
+            Button = Color3.fromRGB(80, 40, 40),
+            ButtonEnabled = Color3.fromRGB(150, 50, 50),
+            ButtonDisabled = Color3.fromRGB(50, 50, 150),
+            Text = Color3.fromRGB(255, 255, 255),
+            Slider = Color3.fromRGB(90, 45, 45),
+            SliderFill = Color3.fromRGB(200, 50, 50),
+            Toggle = Color3.fromRGB(80, 40, 40),
+            ToggleEnabled = Color3.fromRGB(200, 50, 50),
+            Dropdown = Color3.fromRGB(70, 35, 35),
+            ScrollBar = Color3.fromRGB(90, 45, 45),
+            Accent = Color3.fromRGB(200, 50, 50)
         }
     },
     GreenTheme = {
         DefaultColors = {
-            Background = Color3.fromRGB(25, 45, 35),
-            BackgroundSecondary = Color3.fromRGB(35, 55, 45),
-            Title = Color3.fromRGB(20, 40, 30),
-            Button = Color3.fromRGB(40, 65, 50),
-            ButtonHover = Color3.fromRGB(50, 75, 60),
-            ButtonPressed = Color3.fromRGB(30, 55, 40),
-            ButtonEnabled = Color3.fromRGB(40, 180, 100),
-            ButtonDisabled = Color3.fromRGB(190, 70, 70),
-            Text = Color3.fromRGB(230, 240, 235),
-            TextDimmed = Color3.fromRGB(180, 200, 190),
-            Accent = Color3.fromRGB(70, 200, 120),
-            AccentDark = Color3.fromRGB(50, 180, 100),
-            Slider = Color3.fromRGB(45, 70, 55),
-            SliderFill = Color3.fromRGB(70, 200, 120),
-            Toggle = Color3.fromRGB(40, 65, 50),
-            ToggleEnabled = Color3.fromRGB(70, 200, 120),
-            Dropdown = Color3.fromRGB(40, 65, 50),
-            ScrollBar = Color3.fromRGB(50, 75, 60),
-            Shadow = Color3.fromRGB(10, 20, 15)
-        }
-    },
-    PurpleTheme = {
-        DefaultColors = {
-            Background = Color3.fromRGB(40, 30, 55),
-            BackgroundSecondary = Color3.fromRGB(50, 40, 65),
-            Title = Color3.fromRGB(35, 25, 50),
-            Button = Color3.fromRGB(55, 45, 75),
-            ButtonHover = Color3.fromRGB(65, 55, 85),
-            ButtonPressed = Color3.fromRGB(45, 35, 65),
-            ButtonEnabled = Color3.fromRGB(50, 180, 100),
-            ButtonDisabled = Color3.fromRGB(190, 70, 70),
-            Text = Color3.fromRGB(230, 230, 240),
-            TextDimmed = Color3.fromRGB(180, 180, 200),
-            Accent = Color3.fromRGB(150, 100, 255),
-            AccentDark = Color3.fromRGB(130, 80, 235),
-            Slider = Color3.fromRGB(60, 50, 80),
-            SliderFill = Color3.fromRGB(150, 100, 255),
-            Toggle = Color3.fromRGB(55, 45, 75),
-            ToggleEnabled = Color3.fromRGB(150, 100, 255),
-            Dropdown = Color3.fromRGB(55, 45, 75),
-            ScrollBar = Color3.fromRGB(65, 55, 85),
-            Shadow = Color3.fromRGB(15, 10, 20)
+            Background = Color3.fromRGB(25, 50, 25),
+            Title = Color3.fromRGB(35, 70, 35),
+            Button = Color3.fromRGB(40, 80, 40),
+            ButtonEnabled = Color3.fromRGB(50, 150, 50),
+            ButtonDisabled = Color3.fromRGB(150, 50, 50),
+            Text = Color3.fromRGB(255, 255, 255),
+            Slider = Color3.fromRGB(45, 90, 45),
+            SliderFill = Color3.fromRGB(50, 200, 50),
+            Toggle = Color3.fromRGB(40, 80, 40),
+            ToggleEnabled = Color3.fromRGB(50, 200, 50),
+            Dropdown = Color3.fromRGB(35, 70, 35),
+            ScrollBar = Color3.fromRGB(45, 90, 45),
+            Accent = Color3.fromRGB(50, 200, 50)
         }
     }
 }
