@@ -31,11 +31,103 @@ GuiLib.Settings = {
     ElementCornerRadius = UDim.new(0, 4),
     ShadowTransparency = 0.85,
     Easing = Enum.EasingStyle.Quint,
-    EasingDirection = Enum.EasingDirection.Out
+    EasingDirection = Enum.EasingDirection.Out,
+    TweenDuration = {
+        Short = 0.15,
+        Medium = 0.25,
+        Long = 0.4
+    },
+    Spring = {
+        Damping = 0.8,
+        Frequency = 3,
+        Initial = 0,
+        Velocity = 0
+    }
 }
 
--- TweenService for advanced animations
+-- Enhanced tweening utility functions
 local TweenService = game:GetService("TweenService")
+local function TweenElement(element, properties, duration, easingStyle, easingDirection, delay)
+    local tweenInfo = TweenInfo.new(
+        duration or GuiLib.Settings.TweenDuration.Medium,
+        easingStyle or GuiLib.Settings.Easing,
+        easingDirection or GuiLib.Settings.EasingDirection,
+        0, -- RepeatCount
+        false, -- Reverses
+        delay or 0 -- DelayTime
+    )
+    
+    local tween = TweenService:Create(element, tweenInfo, properties)
+    tween:Play()
+    return tween
+end
+
+local function SpringTween(element, properties, dampingRatio, frequency, delay)
+    local tweenInfo = TweenInfo.new(
+        GuiLib.Settings.TweenDuration.Medium,
+        Enum.EasingStyle.Spring,
+        Enum.EasingDirection.Out,
+        0, -- RepeatCount
+        false, -- Reverses
+        delay or 0, -- DelayTime
+        dampingRatio or GuiLib.Settings.Spring.Damping,
+        frequency or GuiLib.Settings.Spring.Frequency
+    )
+    
+    local tween = TweenService:Create(element, tweenInfo, properties)
+    tween:Play()
+    return tween
+end
+
+local function BounceIn(element, properties, duration)
+    local tweenInfo = TweenInfo.new(
+        duration or GuiLib.Settings.TweenDuration.Medium,
+        Enum.EasingStyle.Bounce,
+        Enum.EasingDirection.Out,
+        0, -- RepeatCount
+        false, -- Reverses
+        0 -- DelayTime
+    )
+    
+    local tween = TweenService:Create(element, tweenInfo, properties)
+    tween:Play()
+    return tween
+end
+
+local function ElasticOut(element, properties, duration)
+    local tweenInfo = TweenInfo.new(
+        duration or GuiLib.Settings.TweenDuration.Medium,
+        Enum.EasingStyle.Elastic,
+        Enum.EasingDirection.Out,
+        0, -- RepeatCount
+        false, -- Reverses
+        0 -- DelayTime
+    )
+    
+    local tween = TweenService:Create(element, tweenInfo, properties)
+    tween:Play()
+    return tween
+end
+
+local function SequenceTween(element, properties, durations)
+    local tweens = {}
+    for i, propertySet in ipairs(properties) do
+        local duration = durations[i] or GuiLib.Settings.TweenDuration.Medium
+        local tween = TweenElement(element, propertySet, duration)
+        table.insert(tweens, tween)
+    end
+    
+    -- Chain the tweens
+    for i = 1, #tweens - 1 do
+        tweens[i].Completed:Connect(function()
+            tweens[i + 1]:Play()
+        end)
+    end
+    
+    -- Play the first tween
+    tweens[1]:Play()
+    return tweens
+end
 
 -- Create the main container with draggable functionality
 function GuiLib:CreateWindow(name, size, position)
@@ -64,27 +156,15 @@ function GuiLib:CreateWindow(name, size, position)
         end
     end
 
-    -- Creating a horizontal layout
+    -- Modified for horizontal layout
     local mainFrame = Instance.new("Frame")
     mainFrame.Name = "MainFrame"
-    mainFrame.Size = size or UDim2.new(0, 650, 0, 300)
+    mainFrame.Size = size or UDim2.new(0, 650, 0, 300) -- Wider for horizontal layout
     mainFrame.Position = position or UDim2.new(0.5, -325, 0.5, -150)
     mainFrame.BackgroundColor3 = self.Settings.DefaultColors.Background
     mainFrame.BackgroundTransparency = self.Settings.DefaultTransparency
     mainFrame.BorderSizePixel = 0
     mainFrame.Parent = gui
-    
-    -- Appear with a scale animation
-    mainFrame.Size = UDim2.new(0, 0, 0, 0)
-    mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    mainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-    
-    local openTween = TweenService:Create(
-        mainFrame,
-        TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-        {Size = size or UDim2.new(0, 650, 0, 300)}
-    )
-    openTween:Play()
 
     -- Add corner radius
     local corner = Instance.new("UICorner")
@@ -94,8 +174,8 @@ function GuiLib:CreateWindow(name, size, position)
     -- Add shadow with improved appearance
     local shadow = Instance.new("ImageLabel")
     shadow.Name = "Shadow"
-    shadow.Size = UDim2.new(1, 60, 1, 60)
-    shadow.Position = UDim2.new(0, -30, 0, -30)
+    shadow.Size = UDim2.new(1, 50, 1, 50)
+    shadow.Position = UDim2.new(0, -25, 0, -25)
     shadow.BackgroundTransparency = 1
     shadow.Image = "rbxassetid://5554236805"
     shadow.ImageColor3 = self.Settings.DefaultColors.Shadow
@@ -104,16 +184,8 @@ function GuiLib:CreateWindow(name, size, position)
     shadow.SliceCenter = Rect.new(23, 23, 277, 277)
     shadow.ZIndex = 0
     shadow.Parent = mainFrame
-    
-    -- Shadow tween
-    local shadowTween = TweenService:Create(
-        shadow,
-        TweenInfo.new(1.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.2),
-        {ImageTransparency = self.Settings.ShadowTransparency}
-    )
-    shadowTween:Play()
 
-    -- Title bar (top)
+    -- Title bar (now horizontal along the top)
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
     titleBar.Size = UDim2.new(1, 0, 0, 38)
@@ -137,7 +209,7 @@ function GuiLib:CreateWindow(name, size, position)
     bottomFrameFix.ZIndex = 1
     bottomFrameFix.Parent = titleBar
     
-    -- Title decoration with pulse effect
+    -- Title icon
     local titleIcon = Instance.new("Frame")
     titleIcon.Name = "TitleIcon"
     titleIcon.Size = UDim2.new(0, 8, 0, 16)
@@ -145,19 +217,6 @@ function GuiLib:CreateWindow(name, size, position)
     titleIcon.BackgroundColor3 = self.Settings.DefaultColors.Accent
     titleIcon.BorderSizePixel = 0
     titleIcon.Parent = titleBar
-    
-    -- Create a pulse animation for the title icon
-    spawn(function()
-        while true do
-            local pulseTween = TweenService:Create(
-                titleIcon,
-                TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, 0, true),
-                {Size = UDim2.new(0, 8, 0, 20), BackgroundTransparency = 0.3}
-            )
-            pulseTween:Play()
-            wait(3)
-        end
-    end)
     
     local titleIconCorner = Instance.new("UICorner")
     titleIconCorner.CornerRadius = UDim.new(0, 2)
@@ -175,17 +234,7 @@ function GuiLib:CreateWindow(name, size, position)
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Parent = titleBar
     
-    -- Create a typing effect for the title
-    titleLabel.Text = ""
-    spawn(function()
-        local titleText = name or "GUI Library"
-        for i = 1, #titleText do
-            titleLabel.Text = string.sub(titleText, 1, i)
-            wait(0.03)
-        end
-    end)
-    
-    -- Close and minimize buttons
+    -- Close button with improved animation
     local closeButton = Instance.new("TextButton")
     closeButton.Name = "CloseButton"
     closeButton.Size = UDim2.new(0, 26, 0, 26)
@@ -210,172 +259,44 @@ function GuiLib:CreateWindow(name, size, position)
     closeIcon.Font = self.Settings.FontBold
     closeIcon.Parent = closeButton
     
-    -- Minimize button
-    local minimizeButton = Instance.new("TextButton")
-    minimizeButton.Name = "MinimizeButton"
-    minimizeButton.Size = UDim2.new(0, 26, 0, 26)
-    minimizeButton.Position = UDim2.new(1, -64, 0, 6)
-    minimizeButton.BackgroundColor3 = self.Settings.DefaultColors.Button
-    minimizeButton.BackgroundTransparency = 0.3
-    minimizeButton.Text = ""
-    minimizeButton.AutoButtonColor = false
-    minimizeButton.Parent = titleBar
-    
-    local minimizeCorner = Instance.new("UICorner")
-    minimizeCorner.CornerRadius = UDim.new(0, 4)
-    minimizeCorner.Parent = minimizeButton
-    
-    local minimizeIcon = Instance.new("TextLabel")
-    minimizeIcon.Name = "MinimizeIcon"
-    minimizeIcon.Size = UDim2.new(1, 0, 1, 0)
-    minimizeIcon.BackgroundTransparency = 1
-    minimizeIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
-    minimizeIcon.Text = "-"
-    minimizeIcon.TextSize = 18
-    minimizeIcon.Font = self.Settings.FontBold
-    minimizeIcon.Parent = minimizeButton
-    
-    -- Button animations with improved effects
-    closeButton.MouseEnter:Connect(function()
-        local buttonTween = TweenService:Create(
-            closeButton, 
-            TweenInfo.new(0.3, Enum.EasingStyle.Quint), 
-            {BackgroundTransparency = 0, Size = UDim2.new(0, 28, 0, 28), Position = UDim2.new(1, -33, 0, 5)}
-        )
-        buttonTween:Play()
-    end)
-    
-    closeButton.MouseLeave:Connect(function()
-        local buttonTween = TweenService:Create(
-            closeButton, 
-            TweenInfo.new(0.3, Enum.EasingStyle.Quint), 
-            {BackgroundTransparency = 0.3, Size = UDim2.new(0, 26, 0, 26), Position = UDim2.new(1, -32, 0, 6)}
-        )
-        buttonTween:Play()
-    end)
-    
-    minimizeButton.MouseEnter:Connect(function()
-        local buttonTween = TweenService:Create(
-            minimizeButton, 
-            TweenInfo.new(0.3, Enum.EasingStyle.Quint), 
-            {BackgroundTransparency = 0, Size = UDim2.new(0, 28, 0, 28), Position = UDim2.new(1, -65, 0, 5)}
-        )
-        buttonTween:Play()
-    end)
-    
-    minimizeButton.MouseLeave:Connect(function()
-        local buttonTween = TweenService:Create(
-            minimizeButton, 
-            TweenInfo.new(0.3, Enum.EasingStyle.Quint), 
-            {BackgroundTransparency = 0.3, Size = UDim2.new(0, 26, 0, 26), Position = UDim2.new(1, -64, 0, 6)}
-        )
-        buttonTween:Play()
-    end)
-    
-    -- Close animation and function
-    closeButton.MouseButton1Click:Connect(function()
-        local closeTween = TweenService:Create(
-            mainFrame, 
-            TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.In),
-            {Size = UDim2.new(0, 0, 0, 0)}
-        )
-        
-        local fadeTween = TweenService:Create(
-            mainFrame,
-            TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            {BackgroundTransparency = 1}
-        )
-        
-        local shadowFadeTween = TweenService:Create(
-            shadow,
-            TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            {ImageTransparency = 1}
-        )
-        
-        closeTween:Play()
-        fadeTween:Play()
-        shadowFadeTween:Play()
-        
-        closeTween.Completed:Connect(function()
-            wait(0.1)
-            gui:Destroy()
-        end)
-    end)
-    
-    -- Minimize function
-    local isMinimized = false
-    minimizeButton.MouseButton1Click:Connect(function()
-        isMinimized = not isMinimized
-        
-        if isMinimized then
-            local minTween = TweenService:Create(
-                mainFrame,
-                TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-                {Size = UDim2.new(0, size.X.Offset, 0, 38)}
-            )
-            minTween:Play()
-            minimizeIcon.Text = "+"
-        else
-            local expandTween = TweenService:Create(
-                mainFrame,
-                TweenInfo.new(0.5, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-                {Size = size or UDim2.new(0, 650, 0, 300)}
-            )
-            expandTween:Play()
-            minimizeIcon.Text = "-"
-        end
-    end)
-    
-    -- Horizontal layout with sidebar and main content
+    -- Horizontal layout with sidebar and main content area
     local sidebarFrame = Instance.new("Frame")
     sidebarFrame.Name = "SidebarFrame"
-    sidebarFrame.Size = UDim2.new(0, 180, 1, -46)
+    sidebarFrame.Size = UDim2.new(0, 170, 1, -46)
     sidebarFrame.Position = UDim2.new(0, 8, 0, 38)
     sidebarFrame.BackgroundColor3 = self.Settings.DefaultColors.BackgroundSecondary
     sidebarFrame.BackgroundTransparency = 0.25
     sidebarFrame.BorderSizePixel = 0
-    sidebarFrame.ClipsDescendants = true
     sidebarFrame.Parent = mainFrame
     
     local sidebarCorner = Instance.new("UICorner")
     sidebarCorner.CornerRadius = self.Settings.CornerRadius
     sidebarCorner.Parent = sidebarFrame
     
-    -- Main content area
-    local contentFrame = Instance.new("Frame")
-    contentFrame.Name = "ContentFrame"
-    contentFrame.Size = UDim2.new(1, -196, 1, -46)
-    contentFrame.Position = UDim2.new(0, 188, 0, 38)
-    contentFrame.BackgroundColor3 = self.Settings.DefaultColors.BackgroundSecondary
-    contentFrame.BackgroundTransparency = 0.25
-    contentFrame.BorderSizePixel = 0
-    contentFrame.ClipsDescendants = true
-    contentFrame.Parent = mainFrame
+    local sidebarScrollingFrame = Instance.new("ScrollingFrame")
+    sidebarScrollingFrame.Name = "SidebarContainer"
+    sidebarScrollingFrame.Size = UDim2.new(1, -12, 1, -12)
+    sidebarScrollingFrame.Position = UDim2.new(0, 6, 0, 6)
+    sidebarScrollingFrame.BackgroundTransparency = 1
+    sidebarScrollingFrame.BorderSizePixel = 0
+    sidebarScrollingFrame.ScrollBarThickness = 3
+    sidebarScrollingFrame.ScrollBarImageColor3 = self.Settings.DefaultColors.ScrollBar
+    sidebarScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    sidebarScrollingFrame.Parent = sidebarFrame
     
-    local contentCorner = Instance.new("UICorner")
-    contentCorner.CornerRadius = self.Settings.CornerRadius
-    contentCorner.Parent = contentFrame
-    
-    -- Sidebar scroll frame with hover effect
-    local sidebarScroll = Instance.new("ScrollingFrame")
-    sidebarScroll.Name = "SidebarScroll"
-    sidebarScroll.Size = UDim2.new(1, -12, 1, -12)
-    sidebarScroll.Position = UDim2.new(0, 6, 0, 6)
-    sidebarScroll.BackgroundTransparency = 1
-    sidebarScroll.BorderSizePixel = 0
-    sidebarScroll.ScrollBarThickness = 3
-    sidebarScroll.ScrollBarImageColor3 = self.Settings.DefaultColors.ScrollBar
-    sidebarScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
-    sidebarScroll.Parent = sidebarFrame
-    
-    -- Scrolling container with smoother padding
+    -- Content area (main panel)
     local containerBorder = Instance.new("Frame")
     containerBorder.Name = "ContainerBorder"
-    containerBorder.Size = UDim2.new(1, -12, 1, -12)
-    containerBorder.Position = UDim2.new(0, 6, 0, 6)
-    containerBorder.BackgroundTransparency = 1
+    containerBorder.Size = UDim2.new(1, -194, 1, -46) -- Width adjusted to accommodate sidebar
+    containerBorder.Position = UDim2.new(0, 186, 0, 38) -- Positioned to the right of sidebar
+    containerBorder.BackgroundColor3 = self.Settings.DefaultColors.BackgroundSecondary
+    containerBorder.BackgroundTransparency = 0.25
     containerBorder.BorderSizePixel = 0
-    containerBorder.Parent = contentFrame
+    containerBorder.Parent = mainFrame
+    
+    local borderCorner = Instance.new("UICorner")
+    borderCorner.CornerRadius = self.Settings.CornerRadius
+    borderCorner.Parent = containerBorder
     
     local scrollingFrame = Instance.new("ScrollingFrame")
     scrollingFrame.Name = "Container"
@@ -388,21 +309,22 @@ function GuiLib:CreateWindow(name, size, position)
     scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
     scrollingFrame.Parent = containerBorder
     
-    -- Auto layouts
-    local sidebarLayout = Instance.new("UIListLayout")
-    sidebarLayout.Padding = UDim.new(0, 8)
-    sidebarLayout.FillDirection = Enum.FillDirection.Vertical
-    sidebarLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    sidebarLayout.SortOrder = Enum.SortOrder.LayoutOrder
-    sidebarLayout.Parent = sidebarScroll
+    -- Auto layout for sidebar
+    local sidebarListLayout = Instance.new("UIListLayout")
+    sidebarListLayout.Padding = UDim.new(0, 8)
+    sidebarListLayout.FillDirection = Enum.FillDirection.Vertical
+    sidebarListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    sidebarListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    sidebarListLayout.Parent = sidebarScrollingFrame
     
     local sidebarPadding = Instance.new("UIPadding")
     sidebarPadding.PaddingTop = UDim.new(0, 6)
     sidebarPadding.PaddingBottom = UDim.new(0, 6)
     sidebarPadding.PaddingLeft = UDim.new(0, 2)
     sidebarPadding.PaddingRight = UDim.new(0, 2)
-    sidebarPadding.Parent = sidebarScroll
+    sidebarPadding.Parent = sidebarScrollingFrame
     
+    -- Auto layout for main container
     local listLayout = Instance.new("UIListLayout")
     listLayout.Padding = UDim.new(0, 8)
     listLayout.FillDirection = Enum.FillDirection.Vertical
@@ -416,113 +338,32 @@ function GuiLib:CreateWindow(name, size, position)
     paddingFrame.PaddingLeft = UDim.new(0, 2)
     paddingFrame.PaddingRight = UDim.new(0, 2)
     paddingFrame.Parent = scrollingFrame
-    
-    -- Add decorative logo/icon to sidebar
-    local logoFrame = Instance.new("Frame")
-    logoFrame.Name = "LogoFrame"
-    logoFrame.Size = UDim2.new(1, -16, 0, 50)
-    logoFrame.BackgroundColor3 = self.Settings.DefaultColors.Title
-    logoFrame.BackgroundTransparency = 0.2
-    logoFrame.BorderSizePixel = 0
-    logoFrame.Parent = sidebarScroll
-    
-    local logoCorner = Instance.new("UICorner")
-    logoCorner.CornerRadius = self.Settings.ElementCornerRadius
-    logoCorner.Parent = logoFrame
-    
-    local logoAccent = Instance.new("Frame")
-    logoAccent.Name = "LogoAccent"
-    logoAccent.Size = UDim2.new(0, 4, 0, 30)
-    logoAccent.Position = UDim2.new(0, 8, 0.5, -15)
-    logoAccent.BackgroundColor3 = self.Settings.DefaultColors.Accent
-    logoAccent.BorderSizePixel = 0
-    logoAccent.Parent = logoFrame
-    
-    local logoAccentCorner = Instance.new("UICorner")
-    logoAccentCorner.CornerRadius = UDim.new(0, 2)
-    logoAccentCorner.Parent = logoAccent
-    
-    local logoText = Instance.new("TextLabel")
-    logoText.Name = "LogoText"
-    logoText.Size = UDim2.new(1, -50, 1, 0)
-    logoText.Position = UDim2.new(0, 20, 0, 0)
-    logoText.BackgroundTransparency = 1
-    logoText.TextColor3 = self.Settings.DefaultColors.Text
-    logoText.TextSize = 18
-    logoText.Font = self.Settings.FontBold
-    logoText.Text = "GUI Library"
-    logoText.TextXAlignment = Enum.TextXAlignment.Left
-    logoText.Parent = logoFrame
-    
-    -- Create pulsing effect for logo accent
-    spawn(function()
-        while true do
-            local accentTween = TweenService:Create(
-                logoAccent,
-                TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, 0, true),
-                {BackgroundTransparency = 0.5, Size = UDim2.new(0, 4, 0, 35)}
-            )
-            accentTween:Play()
-            wait(3)
-        end
-    end)
 
-    -- Dragging for both PC and Mobile with improved smoothness
+    -- Enhanced dragging with spring effects for both PC and Mobile
     local isDragging = false
     local dragStart, startPos
-    local dragSpeed = 0.07 -- Smoothness factor (lower = smoother)
-    local lastMousePos = Vector2.new(0, 0)
-    local velocityX, velocityY = 0, 0
-    
-    local function updateDrag()
-        if not isDragging then return end
-        
-        local mousePos = game:GetService("UserInputService"):GetMouseLocation()
-        local delta = mousePos - dragStart
-        
-        -- Calculate velocity for inertia
-        velocityX = mousePos.X - lastMousePos.X
-        velocityY = mousePos.Y - lastMousePos.Y
-        lastMousePos = mousePos
-        
-        -- Smooth movement
-        local newPosition = UDim2.new(
-            startPos.X.Scale, 
-            Lerp(mainFrame.Position.X.Offset, startPos.X.Offset + delta.X, dragSpeed),
-            startPos.Y.Scale, 
-            Lerp(mainFrame.Position.Y.Offset, startPos.Y.Offset + delta.Y, dragSpeed)
-        )
-        
-        mainFrame.Position = newPosition
-    end
-    
-    -- Linear interpolation function for smooth dragging
-    function Lerp(a, b, t)
-        return a + (b - a) * t
-    end
+
+    local function updateDrag(input)
+        local delta = input.Position - dragStart
+        SpringTween(mainFrame, {
+            Position = UDim2.new(
+                startPos.X.Scale, startPos.X.Offset + delta.X,
+                startPos.Y.Scale, startPos.Y.Offset + delta.Y
+            )
+        }, 0.7, 4) -- Slightly bouncy feel
+    }
 
     titleBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             isDragging = true
             dragStart = input.Position
             startPos = mainFrame.Position
-            lastMousePos = input.Position
             
-            -- Add highlighting effect when dragging
-            local highlightTween = TweenService:Create(
-                titleBar,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 0}
-            )
-            highlightTween:Play()
-            
-            -- Continuous update for smoother dragging
-            spawn(function()
-                while isDragging do
-                    updateDrag()
-                    game:GetService("RunService").RenderStepped:Wait()
-                end
-            end)
+            -- Add a subtle scale effect when grabbed
+            TweenElement(mainFrame, {Size = UDim2.new(
+                mainFrame.Size.X.Scale, mainFrame.Size.X.Offset * 0.99,
+                mainFrame.Size.Y.Scale, mainFrame.Size.Y.Offset * 0.99
+            )}, 0.2)
         end
     end)
 
@@ -530,103 +371,112 @@ function GuiLib:CreateWindow(name, size, position)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             isDragging = false
             
-            -- Add inertia effect
-            spawn(function()
-                for i = 1, 10 do
-                    if not isDragging then
-                        velocityX = velocityX * 0.9
-                        velocityY = velocityY * 0.9
-                        
-                        mainFrame.Position = UDim2.new(
-                            mainFrame.Position.X.Scale,
-                            mainFrame.Position.X.Offset + velocityX * 0.5,
-                            mainFrame.Position.Y.Scale,
-                            mainFrame.Position.Y.Offset + velocityY * 0.5
-                        )
-                        
-                        wait(0.02)
-                    end
-                end
-            end)
-            
-            -- Remove highlighting effect
-            local unhighlightTween = TweenService:Create(
-                titleBar,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = self.Settings.DefaultTransparency}
-            )
-            unhighlightTween:Play()
+            -- Restore original size with a bounce effect
+            ElasticOut(mainFrame, {Size = UDim2.new(
+                mainFrame.Size.X.Scale, mainFrame.Size.X.Offset / 0.99,
+                mainFrame.Size.Y.Scale, mainFrame.Size.Y.Offset / 0.99
+            )}, 0.3)
+        end
+    end)
+
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if isDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            updateDrag(input)
         end
     end)
 
     -- Auto-update container sizes
-    sidebarLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        sidebarScroll.CanvasSize = UDim2.new(0, 0, 0, sidebarLayout.AbsoluteContentSize.Y + 12)
+    sidebarListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        sidebarScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, sidebarListLayout.AbsoluteContentSize.Y + 12)
     end)
     
     listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 12)
     end)
 
+    -- Button animations with spring
+    closeButton.MouseEnter:Connect(function()
+        SpringTween(closeButton, {
+            BackgroundTransparency = 0.1,
+            Size = UDim2.new(0, 28, 0, 28),
+            Position = UDim2.new(1, -33, 0, 5)
+        }, 0.8, 4)
+    end)
+    
+    closeButton.MouseLeave:Connect(function()
+        TweenElement(closeButton, {
+            BackgroundTransparency = 0.3,
+            Size = UDim2.new(0, 26, 0, 26),
+            Position = UDim2.new(1, -32, 0, 6)
+        }, 0.2)
+    end)
+    
+    closeButton.MouseButton1Click:Connect(function()
+        -- Fancy close animation
+        TweenElement(mainFrame, {BackgroundTransparency = 1}, 0.3)
+        TweenElement(titleBar, {BackgroundTransparency = 1}, 0.25)
+        TweenElement(containerBorder, {BackgroundTransparency = 1}, 0.2)
+        TweenElement(sidebarFrame, {BackgroundTransparency = 1}, 0.2)
+        TweenElement(shadow, {ImageTransparency = 1}, 0.4)
+        
+        ElasticOut(mainFrame, {
+            Size = UDim2.new(0, mainFrame.Size.X.Offset * 0.7, 0, 0),
+            Position = UDim2.new(
+                mainFrame.Position.X.Scale, mainFrame.Position.X.Offset + mainFrame.Size.X.Offset * 0.15, 
+                mainFrame.Position.Y.Scale, mainFrame.Position.Y.Offset + mainFrame.Size.Y.Offset * 0.5
+            )
+        }, 0.5)
+        
+        -- Delete after animation finishes
+        task.delay(0.5, function()
+            gui:Destroy()
+        end)
+    end)
+
     local window = {}
     window.gui = gui
     window.mainFrame = mainFrame
     window.container = scrollingFrame
+    window.sidebar = sidebarScrollingFrame
 
-    -- Add this method to your UI library class/module
+    -- Window toggle with advanced animation
     function window:ToggleState(visible)
-        -- Check if visible is a boolean
         if type(visible) ~= "boolean" then
             error("ToggleState requires a boolean parameter (true or false)")
             return
         end
         
-        -- Get the main frame
-        local mainFrame = window.gui:FindFirstChild("MainFrame")
-        if not mainFrame then
-            warn("MainFrame not found")
-            return
-        end
-        
         if visible then
-            -- Show with animation
-            local showTween = TweenService:Create(
-                mainFrame,
-                TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-                {Size = size or UDim2.new(0, 650, 0, 300), BackgroundTransparency = self.Settings.DefaultTransparency}
-            )
-            showTween:Play()
+            mainFrame.Visible = true
+            TweenElement(mainFrame, {BackgroundTransparency = self.Settings.DefaultTransparency}, 0.3)
+            SpringTween(mainFrame, {
+                Size = UDim2.new(0, 650, 0, 300)
+            }, 0.7, 3.5)
         else
-            -- Hide with animation
-            local hideTween = TweenService:Create(
-                mainFrame,
-                TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
-                {Size = UDim2.new(0, mainFrame.Size.X.Offset, 0, 0), BackgroundTransparency = 1}
+            SequenceTween(mainFrame, 
+                {
+                    {BackgroundTransparency = 1},
+                    {Size = UDim2.new(0, 650, 0, 0)}
+                },
+                {0.3, 0.2}
             )
-            hideTween:Play()
+            task.delay(0.5, function()
+                mainFrame.Visible = false
+            end)
         end
         
-        -- Return the new state for chaining
         return self
     end
 
+    -- Add section with smooth enter animation
     function window:AddSection(title)
         local section = Instance.new("Frame")
         section.Name = "Section"
         section.Size = UDim2.new(1, -4, 0, 36)
         section.BackgroundColor3 = GuiLib.Settings.DefaultColors.Title
-        section.BackgroundTransparency = 0.35
+        section.BackgroundTransparency = 1 -- Start fully transparent for animation
         section.BorderSizePixel = 0
         section.Parent = self.container
-        
-        -- Add entrance animation
-        section.BackgroundTransparency = 1
-        local sectionTween = TweenService:Create(
-            section,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-            {BackgroundTransparency = 0.35}
-        )
-        sectionTween:Play()
         
         local sectionCorner = Instance.new("UICorner")
         sectionCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
@@ -634,7 +484,7 @@ function GuiLib:CreateWindow(name, size, position)
         
         local sectionAccent = Instance.new("Frame")
         sectionAccent.Name = "Accent"
-        sectionAccent.Size = UDim2.new(0, 4, 0, 18)
+        sectionAccent.Size = UDim2.new(0, 0, 0, 18) -- Start with 0 width for animation
         sectionAccent.Position = UDim2.new(0, 8, 0.5, -9)
         sectionAccent.BackgroundColor3 = GuiLib.Settings.DefaultColors.Accent
         sectionAccent.BorderSizePixel = 0
@@ -650,45 +500,18 @@ function GuiLib:CreateWindow(name, size, position)
         sectionTitle.Position = UDim2.new(0, 20, 0, 0)
         sectionTitle.BackgroundTransparency = 1
         sectionTitle.TextColor3 = GuiLib.Settings.DefaultColors.Text
+        sectionTitle.TextTransparency = 1 -- Start fully transparent for animation
         sectionTitle.TextSize = 14
         sectionTitle.Font = GuiLib.Settings.FontSemibold
         sectionTitle.Text = title or "Section"
         sectionTitle.TextXAlignment = Enum.TextXAlignment.Left
         sectionTitle.Parent = section
         
-        -- Add a nice hover effect
-        section.MouseEnter:Connect(function()
-            local hoverTween = TweenService:Create(
-                section,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 0.2}
-            )
-            
-            local accentTween = TweenService:Create(
-                sectionAccent,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {Size = UDim2.new(0, 4, 0, 22)}
-            )
-            
-            hoverTween:Play()
-            accentTween:Play()
-        end)
-        
-        section.MouseLeave:Connect(function()
-            local unhoverTween = TweenService:Create(
-                section,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 0.35}
-            )
-            
-            local accentTween = TweenService:Create(
-                sectionAccent,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {Size = UDim2.new(0, 4, 0, 18)}
-            )
-            
-            unhoverTween:Play()
-            accentTween:Play()
+        -- Animation sequence
+        TweenElement(section, {BackgroundTransparency = 0.35}, 0.3)
+        task.delay(0.1, function()
+            TweenElement(sectionAccent, {Size = UDim2.new(0, 4, 0, 18)}, 0.4, Enum.EasingStyle.Back)
+            TweenElement(sectionTitle, {TextTransparency = 0}, 0.3)
         end)
         
         return section
@@ -703,38 +526,19 @@ function GuiLib:CreateWindow(name, size, position)
         labelInstance.Text = text or "Label"
         labelInstance.TextSize = 14
         labelInstance.Font = GuiLib.Settings.FontRegular
+        labelInstance.TextTransparency = 1 -- Start transparent for animation
         labelInstance.Parent = self.container
         
-        -- Add fade-in animation
-        labelInstance.TextTransparency = 1
-        local textTween = TweenService:Create(
-            labelInstance,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad),
-            {TextTransparency = 0}
-        )
-        textTween:Play()
+        -- Animate in
+        TweenElement(labelInstance, {TextTransparency = 0}, 0.3)
         
         -- Create a wrapper object
         local label = {
             Instance = labelInstance,
             SetText = function(self, newText)
-                -- Animate text change
-                local fadeOutTween = TweenService:Create(
-                    labelInstance,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                    {TextTransparency = 1}
-                )
-                
-                fadeOutTween:Play()
-                fadeOutTween.Completed:Connect(function()
+                TweenElement(labelInstance, {TextTransparency = 0.5}, 0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out).Completed:Connect(function()
                     labelInstance.Text = newText
-                    
-                    local fadeInTween = TweenService:Create(
-                        labelInstance,
-                        TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                        {TextTransparency = 0}
-                    )
-                    fadeInTween:Play()
+                    TweenElement(labelInstance, {TextTransparency = 0}, 0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
                 end)
             end
         }
@@ -752,18 +556,9 @@ function GuiLib:CreateWindow(name, size, position)
         button.TextSize = 14
         button.Font = GuiLib.Settings.FontSemibold
         button.AutoButtonColor = false
+        button.BackgroundTransparency = 1 -- Start transparent for animation
+        button.TextTransparency = 1 -- Start transparent for animation
         button.Parent = self.container
-        
-        -- Add entrance animation
-        button.BackgroundTransparency = 1
-        button.TextTransparency = 1
-        
-        local introTween = TweenService:Create(
-            button,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad),
-            {BackgroundTransparency = 0, TextTransparency = 0}
-        )
-        introTween:Play()
         
         local buttonCorner = Instance.new("UICorner")
         buttonCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
@@ -773,125 +568,81 @@ function GuiLib:CreateWindow(name, size, position)
         local buttonStroke = Instance.new("UIStroke")
         buttonStroke.Name = "ButtonStroke"
         buttonStroke.Color = GuiLib.Settings.DefaultColors.Accent
-        buttonStroke.Transparency = 0.9
+        buttonStroke.Transparency = 1 -- Start transparent for animation
         buttonStroke.Thickness = 1.5
         buttonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
         buttonStroke.Parent = button
         
-        -- Animation effects with improved tweens
+        -- Animate in
+        TweenElement(button, {BackgroundTransparency = 0, TextTransparency = 0}, 0.3)
+        TweenElement(buttonStroke, {Transparency = 0.9}, 0.4)
+        
+        -- Enhanced animation effects
         button.MouseEnter:Connect(function()
-            local hoverTween = TweenService:Create(
-                button,
-                TweenInfo.new(0.3, Enum.EasingStyle.Back),
-                {
-                    BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonHover,
-                    Size = UDim2.new(1, 0, 0, 36)
-                }
-            )
-            
-            local strokeTween = TweenService:Create(
-                buttonStroke,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {Transparency = 0.7}
-            )
-            
-            hoverTween:Play()
-            strokeTween:Play()
+            SpringTween(button, {
+                BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonHover,
+                Size = UDim2.new(1, -4, 0, 36)
+            }, 0.8, 4)
+            TweenElement(buttonStroke, {Transparency = 0.7}, 0.2)
         end)
         
         button.MouseLeave:Connect(function()
-            local unhoverTween = TweenService:Create(
-                button,
-                TweenInfo.new(0.3, Enum.EasingStyle.Back),
-                {
-                    BackgroundColor3 = GuiLib.Settings.DefaultColors.Button,
-                    Size = UDim2.new(1, -8, 0, 36)
-                }
-            )
-            
-            local strokeTween = TweenService:Create(
-                buttonStroke,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {Transparency = 0.9}
-            )
-            
-            unhoverTween:Play()
-            strokeTween:Play()
+            SpringTween(button, {
+                BackgroundColor3 = GuiLib.Settings.DefaultColors.Button,
+                Size = UDim2.new(1, -8, 0, 36)
+            }, 0.8, 3)
+            TweenElement(buttonStroke, {Transparency = 0.9}, 0.2)
         end)
         
         button.MouseButton1Down:Connect(function()
-            local pressTween = TweenService:Create(
-                button,
-                TweenInfo.new(0.15, Enum.EasingStyle.Quad),
-                {
-                    BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonPressed,
-                    Size = UDim2.new(1, -16, 0, 36)
-                }
-            )
-            
-            local strokeTween = TweenService:Create(
-                buttonStroke,
-                TweenInfo.new(0.15, Enum.EasingStyle.Quad),
-                {Transparency = 0.5}
-            )
-            
-            pressTween:Play()
-            strokeTween:Play()
+            SpringTween(button, {
+                BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonPressed,
+                Size = UDim2.new(1, -12, 0, 36)
+            }, 0.9, 3)
+            TweenElement(buttonStroke, {Transparency = 0.6}, 0.1)
         end)
         
         button.MouseButton1Up:Connect(function()
-            local releaseTween = TweenService:Create(
-                button,
-                TweenInfo.new(0.15, Enum.EasingStyle.Back),
-                {
-                    BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonHover,
-                    Size = UDim2.new(1, 0, 0, 36)
-                }
-            )
-            
-            local strokeTween = TweenService:Create(
-                buttonStroke,
-                TweenInfo.new(0.15, Enum.EasingStyle.Quad),
-                {Transparency = 0.7}
-            )
-            
-            releaseTween:Play()
-            strokeTween:Play()
+            SpringTween(button, {
+                BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonHover,
+                Size = UDim2.new(1, -4, 0, 36)
+            }, 0.7, 3)
+            TweenElement(buttonStroke, {Transparency = 0.7}, 0.2)
         end)
         
-        button.MouseButton1Click:Connect(function()
-            -- Add a ripple effect when clicked
-            local ripple = Instance.new("Frame")
-            ripple.Name = "Ripple"
-            ripple.AnchorPoint = Vector2.new(0.5, 0.5)
-            ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ripple.BackgroundTransparency = 0.7
-            ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
-            ripple.Size = UDim2.new(0, 0, 0, 0)
-            ripple.Parent = button
-            
-            local rippleCorner = Instance.new("UICorner")
-            rippleCorner.CornerRadius = UDim.new(1, 0)
-            rippleCorner.Parent = ripple
-            
-            local rippleTween = TweenService:Create(
-                ripple,
-                TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                {
-                    BackgroundTransparency = 1,
-                    Size = UDim2.new(2, 0, 2, 0)
-                }
-            )
-            
-            rippleTween:Play()
-            rippleTween.Completed:Connect(function()
-                ripple:Destroy()
-            end)
-            
-            if callback then
+        if callback then
+            button.MouseButton1Click:Connect(function()
+                -- Add a ripple effect
+                local ripple = Instance.new("Frame")
+                ripple.Name = "Ripple"
+                ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                ripple.BackgroundTransparency = 0.7
+                ripple.BorderSizePixel = 0
+                ripple.ZIndex = button.ZIndex + 1
+                ripple.Parent = button
+                
+                local rippleCorner = Instance.new("UICorner")
+                rippleCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
+                rippleCorner.Parent = ripple
+                
+                -- Position ripple at click position
+                local mouse = game:GetService("Players").LocalPlayer:GetMouse()
+                local size = math.max(button.AbsoluteSize.X, button.AbsoluteSize.Y) * 1.5
+                ripple.Size = UDim2.new(0, 0, 0, 0)
+                ripple.Position = UDim2.new(0, mouse.X - button.AbsolutePosition.X, 0, mouse.Y - button.AbsolutePosition.Y)
+                ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+                
+                -- Animate ripple
+                TweenElement(ripple, {
+                    Size = UDim2.new(0, size, 0, size),
+                    BackgroundTransparency = 1
+                }, 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out).Completed:Connect(function()
+                    ripple:Destroy()
+                end)
+                
                 callback()
-            end
-        end)
+            end)
+        end
         
         return button
     end
@@ -901,18 +652,9 @@ function GuiLib:CreateWindow(name, size, position)
         toggleContainer.Name = "ToggleContainer"
         toggleContainer.Size = UDim2.new(1, -8, 0, 36)
         toggleContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
-        toggleContainer.BackgroundTransparency = 0.4
+        toggleContainer.BackgroundTransparency = 1 -- Start transparent for animation
         toggleContainer.BorderSizePixel = 0
         toggleContainer.Parent = self.container
-        
-        -- Entrance animation
-        toggleContainer.BackgroundTransparency = 1
-        local fadeInTween = TweenService:Create(
-            toggleContainer,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad),
-            {BackgroundTransparency = 0.4}
-        )
-        fadeInTween:Play()
         
         local containerCorner = Instance.new("UICorner")
         containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
@@ -924,26 +666,19 @@ function GuiLib:CreateWindow(name, size, position)
         label.Position = UDim2.new(0, 16, 0, 0)
         label.BackgroundTransparency = 1
         label.TextColor3 = GuiLib.Settings.DefaultColors.Text
+        label.TextTransparency = 1 -- Start transparent for animation
         label.Text = text or "Toggle"
         label.TextSize = 14
         label.Font = GuiLib.Settings.FontRegular
         label.TextXAlignment = Enum.TextXAlignment.Left
-        label.TextTransparency = 1
         label.Parent = toggleContainer
-        
-        -- Text fade in
-        local textTween = TweenService:Create(
-            label,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad),
-            {TextTransparency = 0}
-        )
-        textTween:Play()
         
         local toggleButton = Instance.new("Frame")
         toggleButton.Name = "ToggleButton"
         toggleButton.Size = UDim2.new(0, 44, 0, 24)
         toggleButton.Position = UDim2.new(1, -54, 0.5, -12)
         toggleButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.Toggle
+        toggleButton.BackgroundTransparency = 1 -- Start transparent for animation
         toggleButton.BorderSizePixel = 0
         toggleButton.Parent = toggleContainer
         
@@ -956,6 +691,7 @@ function GuiLib:CreateWindow(name, size, position)
         toggleIndicator.Size = UDim2.new(0, 18, 0, 18)
         toggleIndicator.Position = UDim2.new(0, 3, 0.5, -9)
         toggleIndicator.BackgroundColor3 = GuiLib.Settings.DefaultColors.Text
+        toggleIndicator.BackgroundTransparency = 1 -- Start transparent for animation
         toggleIndicator.BorderSizePixel = 0
         toggleIndicator.Parent = toggleButton
         
@@ -970,121 +706,77 @@ function GuiLib:CreateWindow(name, size, position)
         clickArea.Text = ""
         clickArea.Parent = toggleContainer
         
+        -- Animate in
+        TweenElement(toggleContainer, {BackgroundTransparency = 0.4}, 0.3)
+        TweenElement(label, {TextTransparency = 0}, 0.4)
+        TweenElement(toggleButton, {BackgroundTransparency = 0}, 0.3)
+        TweenElement(toggleIndicator, {BackgroundTransparency = 0}, 0.4)
+        
         local isEnabled = default or false
         
         local function updateVisuals()
             if isEnabled then
-                -- Smooth advanced animations
-                local bgTween = TweenService:Create(
-                    toggleButton,
-                    TweenInfo.new(0.3, Enum.EasingStyle.Quint),
-                    {BackgroundColor3 = GuiLib.Settings.DefaultColors.ToggleEnabled}
-                )
+                SpringTween(toggleButton, {
+                    BackgroundColor3 = GuiLib.Settings.DefaultColors.ToggleEnabled
+                }, 0.8, 4)
                 
-                local positionTween = TweenService:Create(
-                    toggleIndicator,
-                    TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-                    {Position = UDim2.new(0, 23, 0.5, -9)}
-                )
-                
-                -- Add a slight scale bounce effect
-                local scaleTween = TweenService:Create(
-                    toggleIndicator,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                    {Size = UDim2.new(0, 20, 0, 20)}
-                )
-                
-                local scaleDownTween = TweenService:Create(
-                    toggleIndicator,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.2),
-                    {Size = UDim2.new(0, 18, 0, 18)}
-                )
-                
-                bgTween:Play()
-                positionTween:Play()
-                scaleTween:Play()
-                scaleDownTween:Play()
+                SpringTween(toggleIndicator, {
+                    Position = UDim2.new(0, 23, 0.5, -9)
+                }, 0.7, 3.5)
             else
-                local bgTween = TweenService:Create(
-                    toggleButton,
-                    TweenInfo.new(0.3, Enum.EasingStyle.Quint),
-                    {BackgroundColor3 = GuiLib.Settings.DefaultColors.Toggle}
-                )
+                TweenElement(toggleButton, {
+                    BackgroundColor3 = GuiLib.Settings.DefaultColors.Toggle
+                }, 0.3)
                 
-                local positionTween = TweenService:Create(
-                    toggleIndicator,
-                    TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-                    {Position = UDim2.new(0, 3, 0.5, -9)}
-                )
-                
-                -- Add a slight scale bounce effect
-                local scaleTween = TweenService:Create(
-                    toggleIndicator,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                    {Size = UDim2.new(0, 20, 0, 20)}
-                )
-                
-                local scaleDownTween = TweenService:Create(
-                    toggleIndicator,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, false, 0.2),
-                    {Size = UDim2.new(0, 18, 0, 18)}
-                )
-                
-                bgTween:Play()
-                positionTween:Play()
-                scaleTween:Play()
-                scaleDownTween:Play()
+                SpringTween(toggleIndicator, {
+                    Position = UDim2.new(0, 3, 0.5, -9)
+                }, 0.7, 3.5)
             end
         end
         
         updateVisuals()
         
-        -- Hover effect with improved animations
+        -- Hover effect
         clickArea.MouseEnter:Connect(function()
-            local hoverTween = TweenService:Create(
-                toggleContainer,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 0.2}
-            )
-            hoverTween:Play()
+            TweenElement(toggleContainer, {BackgroundTransparency = 0.2}, 0.2)
+            SpringTween(toggleIndicator, {Size = UDim2.new(0, 20, 0, 20), Position = UDim2.new(
+                toggleIndicator.Position.X.Scale,
+                toggleIndicator.Position.X.Offset,
+                0.5, -10
+            )}, 0.8, 4)
         end)
         
         clickArea.MouseLeave:Connect(function()
-            local unhoverTween = TweenService:Create(
-                toggleContainer,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 0.4}
-            )
-            unhoverTween:Play()
+            TweenElement(toggleContainer, {BackgroundTransparency = 0.4}, 0.2)
+            SpringTween(toggleIndicator, {Size = UDim2.new(0, 18, 0, 18), Position = UDim2.new(
+                toggleIndicator.Position.X.Scale, 
+                toggleIndicator.Position.X.Offset,
+                0.5, -9
+            )}, 0.8, 4)
         end)
         
         clickArea.MouseButton1Click:Connect(function()
             isEnabled = not isEnabled
             updateVisuals()
             
-            -- Add click ripple effect
-            local ripple = Instance.new("Frame")
-            ripple.Name = "Ripple"
-            ripple.AnchorPoint = Vector2.new(0.5, 0.5)
-            ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
-            ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ripple.BackgroundTransparency = 0.7
-            ripple.Size = UDim2.new(0, 0, 0, 0)
-            ripple.Parent = toggleContainer
+            -- Add a pulse effect on click
+            local pulse = toggleIndicator:Clone()
+            pulse.Size = UDim2.new(0, 18, 0, 18)
+            pulse.Position = toggleIndicator.Position
+            pulse.BackgroundTransparency = 0.7
+            pulse.ZIndex = toggleIndicator.ZIndex - 1
+            pulse.Parent = toggleButton
             
-            local rippleCorner = Instance.new("UICorner")
-            rippleCorner.CornerRadius = UDim.new(1, 0)
-            rippleCorner.Parent = ripple
-            
-            local rippleTween = TweenService:Create(
-                ripple,
-                TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                {Size = UDim2.new(1.5, 0, 1.5, 0), BackgroundTransparency = 1}
-            )
-            
-            rippleTween:Play()
-            rippleTween.Completed:Connect(function()
-                ripple:Destroy()
+            TweenElement(pulse, {
+                Size = UDim2.new(0, 30, 0, 30),
+                BackgroundTransparency = 1,
+                Position = UDim2.new(
+                    pulse.Position.X.Scale,
+                    pulse.Position.X.Offset - 5,
+                    0.5, -15
+                )
+            }, 0.3).Completed:Connect(function()
+                pulse:Destroy()
             end)
             
             if callback then
@@ -1095,10 +787,9 @@ function GuiLib:CreateWindow(name, size, position)
         local toggleFunctions = {}
         
         function toggleFunctions:Set(value)
-            if type(value) == "boolean" and value ~= isEnabled then
+            if type(value) == "boolean" then
                 isEnabled = value
                 updateVisuals()
-                
                 if callback then
                     callback(isEnabled)
                 end
@@ -1122,18 +813,9 @@ function GuiLib:CreateWindow(name, size, position)
         sliderContainer.Name = "SliderContainer"
         sliderContainer.Size = UDim2.new(1, -8, 0, 56)
         sliderContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
-        sliderContainer.BackgroundTransparency = 0.4
+        sliderContainer.BackgroundTransparency = 1 -- Start transparent for animation
         sliderContainer.BorderSizePixel = 0
         sliderContainer.Parent = self.container
-        
-        -- Entrance animation
-        sliderContainer.BackgroundTransparency = 1
-        local containerTween = TweenService:Create(
-            sliderContainer,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad),
-            {BackgroundTransparency = 0.4}
-        )
-        containerTween:Play()
         
         local containerCorner = Instance.new("UICorner")
         containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
@@ -1145,20 +827,12 @@ function GuiLib:CreateWindow(name, size, position)
         label.Position = UDim2.new(0, 16, 0, 0)
         label.BackgroundTransparency = 1
         label.TextColor3 = GuiLib.Settings.DefaultColors.Text
+        label.TextTransparency = 1 -- Start transparent for animation
         label.Text = text or "Slider"
         label.TextSize = 14
         label.Font = GuiLib.Settings.FontRegular
         label.TextXAlignment = Enum.TextXAlignment.Left
-        label.TextTransparency = 1
         label.Parent = sliderContainer
-        
-        -- Text fade in
-        local textTween = TweenService:Create(
-            label,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad),
-            {TextTransparency = 0}
-        )
-        textTween:Play()
         
         local valueDisplay = Instance.new("TextLabel")
         valueDisplay.Name = "Value"
@@ -1166,20 +840,12 @@ function GuiLib:CreateWindow(name, size, position)
         valueDisplay.Position = UDim2.new(1, -80, 0, 0)
         valueDisplay.BackgroundTransparency = 1
         valueDisplay.TextColor3 = GuiLib.Settings.DefaultColors.Text
+        valueDisplay.TextTransparency = 1 -- Start transparent for animation
         valueDisplay.Text = tostring(default)
         valueDisplay.TextSize = 14
         valueDisplay.Font = GuiLib.Settings.FontSemibold
         valueDisplay.TextXAlignment = Enum.TextXAlignment.Right
-        valueDisplay.TextTransparency = 1
         valueDisplay.Parent = sliderContainer
-        
-        -- Value display fade in
-        local valueTween = TweenService:Create(
-            valueDisplay,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad),
-            {TextTransparency = 0}
-        )
-        valueTween:Play()
         
         -- Change to TextButton to capture input on mobile
         local sliderBarContainer = Instance.new("Frame")
@@ -1187,6 +853,7 @@ function GuiLib:CreateWindow(name, size, position)
         sliderBarContainer.Size = UDim2.new(1, -32, 0, 8)
         sliderBarContainer.Position = UDim2.new(0, 16, 0, 34)
         sliderBarContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Slider
+        sliderBarContainer.BackgroundTransparency = 1 -- Start transparent for animation
         sliderBarContainer.BorderSizePixel = 0
         sliderBarContainer.Parent = sliderContainer
         
@@ -1203,8 +870,9 @@ function GuiLib:CreateWindow(name, size, position)
         
         local sliderFill = Instance.new("Frame")
         sliderFill.Name = "SliderFill"
-        sliderFill.Size = UDim2.new(0, 0, 1, 0) -- Start at 0
+        sliderFill.Size = UDim2.new(0, 0, 1, 0) -- Start with 0 width for animation
         sliderFill.BackgroundColor3 = GuiLib.Settings.DefaultColors.SliderFill
+        sliderFill.BackgroundTransparency = 1 -- Start transparent for animation
         sliderFill.BorderSizePixel = 0
         sliderFill.Parent = sliderBarContainer
         
@@ -1214,10 +882,11 @@ function GuiLib:CreateWindow(name, size, position)
         
         local sliderButton = Instance.new("TextButton")
         sliderButton.Name = "SliderButton"
-        sliderButton.Size = UDim2.new(0, 18, 0, 18)
-        sliderButton.Position = UDim2.new(0, 0, 0.5, 0)
+        sliderButton.Size = UDim2.new(0, 0, 0, 0) -- Start at 0 size for animation
+        sliderButton.Position = UDim2.new((default - min) / (max - min), 0, 0.5, 0)
         sliderButton.AnchorPoint = Vector2.new(0.5, 0.5)
         sliderButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.SliderFill
+        sliderButton.BackgroundTransparency = 1 -- Start transparent for animation
         sliderButton.Text = ""
         sliderButton.Parent = sliderBarContainer
         
@@ -1229,26 +898,32 @@ function GuiLib:CreateWindow(name, size, position)
         local buttonStroke = Instance.new("UIStroke")
         buttonStroke.Name = "ButtonStroke"
         buttonStroke.Color = Color3.fromRGB(255, 255, 255)
-        buttonStroke.Transparency = 0.7
+        buttonStroke.Transparency = 1 -- Start transparent for animation
         buttonStroke.Thickness = 1.5
         buttonStroke.Parent = sliderButton
         
-        -- Animate the slider to its initial position
-        local initPercent = (default - min) / (max - min)
-        local initTween = TweenService:Create(
-            sliderFill,
-            TweenInfo.new(0.6, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
-            {Size = UDim2.new(initPercent, 0, 1, 0)}
-        )
-        
-        local buttonTween = TweenService:Create(
-            sliderButton,
-            TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-            {Position = UDim2.new(initPercent, 0, 0.5, 0)}
-        )
-        
-        initTween:Play()
-        buttonTween:Play()
+        -- Animate in with sequence
+        TweenElement(sliderContainer, {BackgroundTransparency = 0.4}, 0.3)
+        task.delay(0.1, function()
+            TweenElement(label, {TextTransparency = 0}, 0.3)
+            TweenElement(valueDisplay, {TextTransparency = 0}, 0.3)
+        end)
+        task.delay(0.2, function()
+            TweenElement(sliderBarContainer, {BackgroundTransparency = 0}, 0.3)
+            TweenElement(sliderFill, {BackgroundTransparency = 0}, 0.3)
+        end)
+        task.delay(0.3, function()
+            SpringTween(sliderButton, {
+                Size = UDim2.new(0, 18, 0, 18),
+                BackgroundTransparency = 0
+            }, 0.7, 4)
+            TweenElement(buttonStroke, {Transparency = 0.7}, 0.3)
+            
+            -- Set initial fill width properly
+            TweenElement(sliderFill, {
+                Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
+            }, 0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        end)
         
         local function updateSlider(value)
             local newValue = math.clamp(value, min, max)
@@ -1258,41 +933,24 @@ function GuiLib:CreateWindow(name, size, position)
             
             local percent = (newValue - min) / (max - min)
             
-            -- Smooth transitions
-            local fillTween = TweenService:Create(
-                sliderFill,
-                TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                {Size = UDim2.new(percent, 0, 1, 0)}
-            )
+            SpringTween(sliderFill, {
+                Size = UDim2.new(percent, 0, 1, 0)
+            }, 0.8, 4)
             
-            local positionTween = TweenService:Create(
-                sliderButton,
-                TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                {Position = UDim2.new(percent, 0, 0.5, 0)}
-            )
+            SpringTween(sliderButton, {
+                Position = UDim2.new(percent, 0, 0.5, 0)
+            }, 0.7, 4)
             
-            fillTween:Play()
-            positionTween:Play()
-            
-            -- Animate value display change
-            local oldValue = valueDisplay.Text
-            local fadeTween = TweenService:Create(
-                valueDisplay,
-                TweenInfo.new(0.15, Enum.EasingStyle.Quad),
-                {TextTransparency = 1}
-            )
-            
-            fadeTween:Play()
-            fadeTween.Completed:Connect(function()
-                valueDisplay.Text = tostring(newValue)
-                
-                local fadeInTween = TweenService:Create(
-                    valueDisplay,
-                    TweenInfo.new(0.15, Enum.EasingStyle.Quad),
+            -- Animate the value change
+            local currentNum = tonumber(valueDisplay.Text) or default
+            SequenceTween(valueDisplay, 
+                {
+                    {TextTransparency = 0.5}, 
                     {TextTransparency = 0}
-                )
-                fadeInTween:Play()
-            end)
+                },
+                {0.15, 0.15}
+            )
+            valueDisplay.Text = tostring(newValue)
             
             if callback then
                 callback(newValue)
@@ -1315,40 +973,20 @@ function GuiLib:CreateWindow(name, size, position)
             return min + (max - min) * percent
         end
         
-        -- Hover and pressed effects with improved animations
+        -- Enhanced hover and pressed effects
         sliderButton.MouseEnter:Connect(function()
-            local hoverTween = TweenService:Create(
-                sliderButton,
-                TweenInfo.new(0.3, Enum.EasingStyle.Back),
-                {Size = UDim2.new(0, 22, 0, 22)}
-            )
-            
-            local strokeTween = TweenService:Create(
-                buttonStroke,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {Transparency = 0.5}
-            )
-            
-            hoverTween:Play()
-            strokeTween:Play()
+            SpringTween(sliderButton, {
+                Size = UDim2.new(0, 22, 0, 22)
+            }, 0.8, 4)
+            TweenElement(buttonStroke, {Transparency = 0.4}, 0.2)
         end)
         
         sliderButton.MouseLeave:Connect(function()
             if not dragging then
-                local leaveTween = TweenService:Create(
-                    sliderButton,
-                    TweenInfo.new(0.3, Enum.EasingStyle.Back),
-                    {Size = UDim2.new(0, 18, 0, 18)}
-                )
-                
-                local strokeTween = TweenService:Create(
-                    buttonStroke,
-                    TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                    {Transparency = 0.7}
-                )
-                
-                leaveTween:Play()
-                strokeTween:Play()
+                SpringTween(sliderButton, {
+                    Size = UDim2.new(0, 18, 0, 18)
+                }, 0.8, 4)
+                TweenElement(buttonStroke, {Transparency = 0.7}, 0.2)
             end
         end)
         
@@ -1358,20 +996,25 @@ function GuiLib:CreateWindow(name, size, position)
                input.UserInputType == Enum.UserInputType.Touch then
                 dragging = true
                 
-                local pressTween = TweenService:Create(
-                    sliderButton,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                    {Size = UDim2.new(0, 24, 0, 24)}
-                )
+                -- Pulse effect on click
+                SpringTween(sliderButton, {
+                    Size = UDim2.new(0, 24, 0, 24)
+                }, 0.9, 4.5)
+                TweenElement(buttonStroke, {Transparency = 0.2}, 0.1)
                 
-                local strokeTween = TweenService:Create(
-                    buttonStroke,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                    {Transparency = 0.3}
-                )
+                -- Add a pulse effect
+                local pulse = sliderButton:Clone()
+                pulse.Size = UDim2.new(0, 18, 0, 18)
+                pulse.BackgroundTransparency = 0.7
+                pulse.ZIndex = sliderButton.ZIndex - 1
+                pulse.Parent = sliderBarContainer
                 
-                pressTween:Play()
-                strokeTween:Play()
+                TweenElement(pulse, {
+                    Size = UDim2.new(0, 30, 0, 30),
+                    BackgroundTransparency = 1
+                }, 0.4).Completed:Connect(function()
+                    pulse:Destroy()
+                end)
             end
         end)
         
@@ -1381,20 +1024,10 @@ function GuiLib:CreateWindow(name, size, position)
                input.UserInputType == Enum.UserInputType.Touch then
                 dragging = true
                 
-                local pressTween = TweenService:Create(
-                    sliderButton,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                    {Size = UDim2.new(0, 24, 0, 24)}
-                )
-                
-                local strokeTween = TweenService:Create(
-                    buttonStroke,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                    {Transparency = 0.3}
-                )
-                
-                pressTween:Play()
-                strokeTween:Play()
+                SpringTween(sliderButton, {
+                    Size = UDim2.new(0, 24, 0, 24)
+                }, 0.9, 4.5)
+                TweenElement(buttonStroke, {Transparency = 0.2}, 0.1)
                 
                 currentValue = updateSlider(calculateValueFromPosition(input.Position))
             end
@@ -1406,49 +1039,20 @@ function GuiLib:CreateWindow(name, size, position)
                 input.UserInputType == Enum.UserInputType.Touch) and dragging then
                 dragging = false
                 
-                local releaseTween = TweenService:Create(
-                    sliderButton,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Back),
-                    {Size = UDim2.new(0, 18, 0, 18)}
-                )
-                
-                local strokeTween = TweenService:Create(
-                    buttonStroke,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                    {Transparency = 0.7}
-                )
-                
-                releaseTween:Play()
-                strokeTween:Play()
+                SpringTween(sliderButton, {
+                    Size = UDim2.new(0, 18, 0, 18)
+                }, 0.8, 4)
+                TweenElement(buttonStroke, {Transparency = 0.7}, 0.2)
             end
         end)
         
-        -- Handle drag movement (both mouse and touch) with improved smoothness
+        -- Handle drag movement (both mouse and touch)
         userInputService.InputChanged:Connect(function(input)
             if dragging and 
                (input.UserInputType == Enum.UserInputType.MouseMovement or 
                 input.UserInputType == Enum.UserInputType.Touch) then
                 currentValue = updateSlider(calculateValueFromPosition(input.Position))
             end
-        end)
-        
-        -- Hover effect for container
-        sliderContainer.MouseEnter:Connect(function()
-            local hoverTween = TweenService:Create(
-                sliderContainer,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 0.2}
-            )
-            hoverTween:Play()
-        end)
-        
-        sliderContainer.MouseLeave:Connect(function()
-            local leaveTween = TweenService:Create(
-                sliderContainer,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 0.4}
-            )
-            leaveTween:Play()
         end)
         
         local sliderFunctions = {}
@@ -1469,19 +1073,10 @@ function GuiLib:CreateWindow(name, size, position)
         dropdownContainer.Name = "DropdownContainer"
         dropdownContainer.Size = UDim2.new(1, -8, 0, 66)
         dropdownContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
-        dropdownContainer.BackgroundTransparency = 0.4
+        dropdownContainer.BackgroundTransparency = 1 -- Start transparent for animation
         dropdownContainer.BorderSizePixel = 0
         dropdownContainer.ClipsDescendants = true
         dropdownContainer.Parent = self.container
-        
-        -- Entrance animation
-        dropdownContainer.BackgroundTransparency = 1
-        local containerTween = TweenService:Create(
-            dropdownContainer,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad),
-            {BackgroundTransparency = 0.4}
-        )
-        containerTween:Play()
         
         local containerCorner = Instance.new("UICorner")
         containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
@@ -1493,42 +1088,26 @@ function GuiLib:CreateWindow(name, size, position)
         label.Position = UDim2.new(0, 16, 0, 0)
         label.BackgroundTransparency = 1
         label.TextColor3 = GuiLib.Settings.DefaultColors.Text
+        label.TextTransparency = 1 -- Start transparent for animation
         label.Text = text or "Dropdown"
         label.TextSize = 14
         label.Font = GuiLib.Settings.FontRegular
         label.TextXAlignment = Enum.TextXAlignment.Left
-        label.TextTransparency = 1
         label.Parent = dropdownContainer
-        
-        -- Text fade in
-        local textTween = TweenService:Create(
-            label,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad),
-            {TextTransparency = 0}
-        )
-        textTween:Play()
         
         local dropButton = Instance.new("TextButton")
         dropButton.Name = "DropButton"
         dropButton.Size = UDim2.new(1, -32, 0, 36)
         dropButton.Position = UDim2.new(0, 16, 0, 30)
         dropButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.Dropdown
+        dropButton.BackgroundTransparency = 1 -- Start transparent for animation
         dropButton.TextColor3 = GuiLib.Settings.DefaultColors.Text
+        dropButton.TextTransparency = 1 -- Start transparent for animation
         dropButton.Text = default or (options and options[1]) or "Select"
         dropButton.TextSize = 14
         dropButton.Font = GuiLib.Settings.FontSemibold
         dropButton.AutoButtonColor = false
-        dropButton.TextTransparency = 1 -- For animation
-        dropButton.BackgroundTransparency = 1 -- For animation
         dropButton.Parent = dropdownContainer
-        
-        -- Button fade in
-        local buttonTween = TweenService:Create(
-            dropButton,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad),
-            {TextTransparency = 0, BackgroundTransparency = 0}
-        )
-        buttonTween:Play()
         
         local buttonCorner = Instance.new("UICorner")
         buttonCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
@@ -1540,19 +1119,11 @@ function GuiLib:CreateWindow(name, size, position)
         icon.Position = UDim2.new(1, -25, 0.5, -10)
         icon.BackgroundTransparency = 1
         icon.TextColor3 = GuiLib.Settings.DefaultColors.Accent
+        icon.TextTransparency = 1 -- Start transparent for animation
         icon.Text = "▼"
         icon.TextSize = 14
         icon.Font = GuiLib.Settings.FontBold
-        icon.TextTransparency = 1
         icon.Parent = dropButton
-        
-        -- Icon fade in
-        local iconTween = TweenService:Create(
-            icon,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad),
-            {TextTransparency = 0}
-        )
-        iconTween:Play()
         
         local dropFrame = Instance.new("Frame")
         dropFrame.Name = "DropFrame"
@@ -1587,6 +1158,16 @@ function GuiLib:CreateWindow(name, size, position)
         listLayout.SortOrder = Enum.SortOrder.LayoutOrder
         listLayout.Parent = optionList
         
+        -- Animate in with sequence
+        TweenElement(dropdownContainer, {BackgroundTransparency = 0.4}, 0.3)
+        task.delay(0.1, function()
+            TweenElement(label, {TextTransparency = 0}, 0.25)
+        end)
+        task.delay(0.2, function()
+            TweenElement(dropButton, {BackgroundTransparency = 0, TextTransparency = 0}, 0.25)
+            TweenElement(icon, {TextTransparency = 0}, 0.25)
+        end)
+        
         local isOpen = false
         local selectedOption = default or (options and options[1]) or "Select"
         
@@ -1594,122 +1175,93 @@ function GuiLib:CreateWindow(name, size, position)
         local buttonStroke = Instance.new("UIStroke")
         buttonStroke.Name = "ButtonStroke"
         buttonStroke.Color = GuiLib.Settings.DefaultColors.Accent
-        buttonStroke.Transparency = 0.9
+        buttonStroke.Transparency = 1 -- Start transparent for animation
         buttonStroke.Thickness = 1.5
         buttonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
         buttonStroke.Parent = dropButton
         
-        -- Improved hover effects with tweens
+        task.delay(0.3, function()
+            TweenElement(buttonStroke, {Transparency = 0.9}, 0.3)
+        end)
+        
+        -- Hover effects with spring animation
         dropButton.MouseEnter:Connect(function()
-            local hoverTween = TweenService:Create(
-                buttonStroke,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {Transparency = 0.7}
-            )
-            
-            local bgTween = TweenService:Create(
-                dropButton,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {
-                    BackgroundColor3 = Color3.fromRGB(
-                        math.min(GuiLib.Settings.DefaultColors.Dropdown.R * 255 + 10, 255),
-                        math.min(GuiLib.Settings.DefaultColors.Dropdown.G * 255 + 10, 255),
-                        math.min(GuiLib.Settings.DefaultColors.Dropdown.B * 255 + 10, 255)
-                    )
-                }
-            )
-            
-            hoverTween:Play()
-            bgTween:Play()
+            TweenElement(buttonStroke, {Transparency = 0.7}, 0.2)
+            SpringTween(dropButton, {
+                BackgroundColor3 = Color3.fromRGB(
+                    math.min(GuiLib.Settings.DefaultColors.Dropdown.R * 255 + 10, 255),
+                    math.min(GuiLib.Settings.DefaultColors.Dropdown.G * 255 + 10, 255),
+                    math.min(GuiLib.Settings.DefaultColors.Dropdown.B * 255 + 10, 255)
+                ),
+                Size = UDim2.new(1, -28, 0, 36)
+            }, 0.8, 4)
         end)
         
         dropButton.MouseLeave:Connect(function()
-            local unhoverTween = TweenService:Create(
-                buttonStroke,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {Transparency = 0.9}
-            )
-            
-            local bgTween = TweenService:Create(
-                dropButton,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundColor3 = GuiLib.Settings.DefaultColors.Dropdown}
-            )
-            
-            unhoverTween:Play()
-            bgTween:Play()
+            TweenElement(buttonStroke, {Transparency = 0.9}, 0.2)
+            SpringTween(dropButton, {
+                BackgroundColor3 = GuiLib.Settings.DefaultColors.Dropdown,
+                Size = UDim2.new(1, -32, 0, 36)
+            }, 0.8, 4)
         end)
         
         local function toggleDropdown()
             isOpen = not isOpen
             
             if isOpen then
-                -- Rotate icon
-                local iconTween = TweenService:Create(
-                    icon,
-                    TweenInfo.new(0.3, Enum.EasingStyle.Back),
-                    {Rotation = 180}
-                )
-                iconTween:Play()
-                
+                icon.Text = "▲"
+                ElasticOut(icon, {
+                    Position = UDim2.new(1, -25, 0.5, -12),
+                    TextColor3 = GuiLib.Settings.DefaultColors.Accent
+                }, 0.3)
                 dropFrame.Visible = true
                 
                 local optionsHeight = #options * 34 + (#options - 1) * 4
                 optionsHeight = math.min(optionsHeight, 150) -- Max height
                 
-                -- Expand the container to accommodate the dropdown
-                local expandTween = TweenService:Create(
-                    dropdownContainer,
-                    TweenInfo.new(0.4, Enum.EasingStyle.Quint),
-                    {Size = UDim2.new(1, -8, 0, 66 + optionsHeight)}
-                )
+                -- Expand the container with spring effect
+                SpringTween(dropdownContainer, {
+                    Size = UDim2.new(1, -8, 0, 66 + optionsHeight)
+                }, 0.7, 3.5)
                 
-                local dropFrameTween = TweenService:Create(
-                    dropFrame,
-                    TweenInfo.new(0.4, Enum.EasingStyle.Quint),
-                    {Size = UDim2.new(1, 0, 0, optionsHeight)}
-                )
-                
-                expandTween:Play()
-                dropFrameTween:Play()
+                -- Expand the dropdown panel with spring effect
+                SpringTween(dropFrame, {
+                    Size = UDim2.new(1, 0, 0, optionsHeight)
+                }, 0.8, 3)
                 
                 optionList.CanvasSize = UDim2.new(0, 0, 0, #options * 34 + (#options - 1) * 4)
+                
+                -- Add a subtle pulse glow to indicate action
+                local pulse = buttonStroke:Clone()
+                pulse.Parent = dropButton
+                pulse.Transparency = 0.5
+                
+                TweenElement(pulse, {Transparency = 1}, 0.5).Completed:Connect(function()
+                    pulse:Destroy()
+                end)
             else
-                -- Rotate icon back
-                local iconTween = TweenService:Create(
-                    icon,
-                    TweenInfo.new(0.3, Enum.EasingStyle.Back),
-                    {Rotation = 0}
-                )
-                iconTween:Play()
+                ElasticOut(icon, {
+                    Position = UDim2.new(1, -25, 0.5, -10),
+                    TextColor3 = GuiLib.Settings.DefaultColors.Accent
+                }, 0.3)
+                icon.Text = "▼"
                 
-                -- Collapse back to original size
-                local collapseTween = TweenService:Create(
-                    dropdownContainer,
-                    TweenInfo.new(0.4, Enum.EasingStyle.Quint),
-                    {Size = UDim2.new(1, -8, 0, 66)}
-                )
+                -- Collapse with spring effect
+                SpringTween(dropdownContainer, {
+                    Size = UDim2.new(1, -8, 0, 66)
+                }, 0.7, 3.5)
                 
-                local dropFrameTween = TweenService:Create(
-                    dropFrame,
-                    TweenInfo.new(0.3, Enum.EasingStyle.Quint),
-                    {Size = UDim2.new(1, 0, 0, 0)}
-                )
-                
-                collapseTween:Play()
-                dropFrameTween:Play()
-                
-                dropFrameTween.Completed:Connect(function()
-                    if not isOpen then -- Check again in case it was reopened
-                        dropFrame.Visible = false
-                    end
+                TweenElement(dropFrame, {
+                    Size = UDim2.new(1, 0, 0, 0)
+                }, 0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In).Completed:Connect(function()
+                    dropFrame.Visible = false
                 end)
             end
         end
         
         dropButton.MouseButton1Click:Connect(toggleDropdown)
         
-        -- Create option buttons with animations
+        -- Create option buttons with animated appearance
         if options then
             for i, option in ipairs(options) do
                 local optionButton = Instance.new("TextButton")
@@ -1729,45 +1281,53 @@ function GuiLib:CreateWindow(name, size, position)
                 optionCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
                 optionCorner.Parent = optionButton
                 
-                -- Option hover effect with tweens
+                -- Enhanced option hover effect
                 optionButton.MouseEnter:Connect(function()
-                    local hoverTween = TweenService:Create(
-                        optionButton,
-                        TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                        {BackgroundTransparency = 0, BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonHover}
-                    )
-                    hoverTween:Play()
+                    TweenElement(optionButton, {
+                        BackgroundTransparency = 0,
+                        BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonHover,
+                        TextSize = 15 -- Subtle text size increase
+                    }, 0.2)
                 end)
                 
                 optionButton.MouseLeave:Connect(function()
-                    local unhoverTween = TweenService:Create(
-                        optionButton,
-                        TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                        {BackgroundTransparency = 0.2, BackgroundColor3 = GuiLib.Settings.DefaultColors.Button}
-                    )
-                    unhoverTween:Play()
+                    TweenElement(optionButton, {
+                        BackgroundTransparency = 0.2,
+                        BackgroundColor3 = GuiLib.Settings.DefaultColors.Button,
+                        TextSize = 14 -- Restore text size
+                    }, 0.2)
                 end)
                 
                 optionButton.MouseButton1Click:Connect(function()
+                    -- Ripple effect when selecting
+                    local ripple = Instance.new("Frame")
+                    ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                    ripple.BackgroundTransparency = 0.7
+                    ripple.BorderSizePixel = 0
+                    ripple.ZIndex = optionButton.ZIndex - 1
+                    ripple.Size = UDim2.new(0, 0, 0, 0)
+                    ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
+                    ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+                    
+                    local rippleCorner = Instance.new("UICorner")
+                    rippleCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
+                    rippleCorner.Parent = ripple
+                    
+                    ripple.Parent = optionButton
+                    
+                    TweenElement(ripple, {
+                        Size = UDim2.new(1, 30, 1, 30),
+                        BackgroundTransparency = 1
+                    }, 0.3).Completed:Connect(function()
+                        ripple:Destroy()
+                    end)
+                    
                     selectedOption = option
                     
-                    -- Animate text change
-                    local textFadeTween = TweenService:Create(
-                        dropButton,
-                        TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                        {TextTransparency = 1}
-                    )
-                    
-                    textFadeTween:Play()
-                    textFadeTween.Completed:Connect(function()
+                    -- Animate text change with fade
+                    TweenElement(dropButton, {TextTransparency = 1}, 0.1).Completed:Connect(function()
                         dropButton.Text = option
-                        
-                        local textShowTween = TweenService:Create(
-                            dropButton,
-                            TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                            {TextTransparency = 0}
-                        )
-                        textShowTween:Play()
+                        TweenElement(dropButton, {TextTransparency = 0}, 0.1)
                     end)
                     
                     toggleDropdown()
@@ -1796,51 +1356,12 @@ function GuiLib:CreateWindow(name, size, position)
             end
         end)
         
-        -- Container hover effect
-        dropdownContainer.MouseEnter:Connect(function()
-            local hoverTween = TweenService:Create(
-                dropdownContainer,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 0.2}
-            )
-            hoverTween:Play()
-        end)
-        
-        dropdownContainer.MouseLeave:Connect(function()
-            if not isOpen then
-                local unhoverTween = TweenService:Create(
-                    dropdownContainer,
-                    TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                    {BackgroundTransparency = 0.4}
-                )
-                unhoverTween:Play()
-            end
-        end)
-        
         local dropdownFunctions = {}
         
         function dropdownFunctions:Set(option)
             if table.find(options, option) then
                 selectedOption = option
-                
-                -- Animate text change
-                local textFadeTween = TweenService:Create(
-                    dropButton,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                    {TextTransparency = 1}
-                )
-                
-                textFadeTween:Play()
-                textFadeTween.Completed:Connect(function()
-                    dropButton.Text = option
-                    
-                    local textShowTween = TweenService:Create(
-                        dropButton,
-                        TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                        {TextTransparency = 0}
-                    )
-                    textShowTween:Play()
-                end)
+                dropButton.Text = option
                 
                 if callback then
                     callback(option)
@@ -1855,92 +1376,88 @@ function GuiLib:CreateWindow(name, size, position)
         function dropdownFunctions:Refresh(newOptions, keepSelection)
             options = newOptions
             
-            -- Clear existing options with animation
+            -- Clear existing options
             for _, child in ipairs(optionList:GetChildren()) do
                 if child:IsA("TextButton") then
-                    local fadeTween = TweenService:Create(
-                        child,
-                        TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                        {BackgroundTransparency = 1, TextTransparency = 1}
-                    )
-                    
-                    fadeTween:Play()
-                    fadeTween.Completed:Connect(function()
-                        child:Destroy()
-                    end)
+                    child:Destroy()
                 end
             end
             
-            -- Wait for animations to complete
-            wait(0.25)
-            
-            -- Create new option buttons with animations
+            -- Create new option buttons with animation
             for i, option in ipairs(options) do
                 local optionButton = Instance.new("TextButton")
                 optionButton.Name = "Option_" .. option
                 optionButton.Size = UDim2.new(1, -8, 0, 30)
                 optionButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
-                optionButton.BackgroundTransparency = 1 -- Start transparent for animation
+                optionButton.BackgroundTransparency = 1 -- Start transparent
                 optionButton.TextColor3 = GuiLib.Settings.DefaultColors.Text
+                optionButton.TextTransparency = 1 -- Start transparent
                 optionButton.Text = option
                 optionButton.TextSize = 14
-                optionButton.TextTransparency = 1 -- Start transparent for animation
                 optionButton.Font = GuiLib.Settings.FontRegular
                 optionButton.ZIndex = 7
                 optionButton.AutoButtonColor = false
                 optionButton.Parent = optionList
                 
-                -- Fade in animation
-                local appearTween = TweenService:Create(
-                    optionButton,
-                    TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                    {BackgroundTransparency = 0.2, TextTransparency = 0}
-                )
-                appearTween:Play()
+                -- Animate in with delay based on index
+                task.delay(i * 0.03, function()
+                    TweenElement(optionButton, {
+                        BackgroundTransparency = 0.2,
+                        TextTransparency = 0
+                    }, 0.25)
+                end)
                 
                 local optionCorner = Instance.new("UICorner")
                 optionCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
                 optionCorner.Parent = optionButton
                 
-                -- Option hover effect
+                -- Enhanced option hover effect
                 optionButton.MouseEnter:Connect(function()
-                    local hoverTween = TweenService:Create(
-                        optionButton,
-                        TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                        {BackgroundTransparency = 0, BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonHover}
-                    )
-                    hoverTween:Play()
+                    TweenElement(optionButton, {
+                        BackgroundTransparency = 0,
+                        BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonHover,
+                        TextSize = 15
+                    }, 0.2)
                 end)
                 
                 optionButton.MouseLeave:Connect(function()
-                    local unhoverTween = TweenService:Create(
-                        optionButton,
-                        TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                        {BackgroundTransparency = 0.2, BackgroundColor3 = GuiLib.Settings.DefaultColors.Button}
-                    )
-                    unhoverTween:Play()
+                    TweenElement(optionButton, {
+                        BackgroundTransparency = 0.2,
+                        BackgroundColor3 = GuiLib.Settings.DefaultColors.Button,
+                        TextSize = 14
+                    }, 0.2)
                 end)
                 
                 optionButton.MouseButton1Click:Connect(function()
+                    -- Ripple effect
+                    local ripple = Instance.new("Frame")
+                    ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                    ripple.BackgroundTransparency = 0.7
+                    ripple.BorderSizePixel = 0
+                    ripple.ZIndex = optionButton.ZIndex - 1
+                    ripple.Size = UDim2.new(0, 0, 0, 0)
+                    ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
+                    ripple.AnchorPoint = Vector2.new(0.5, 0.5)
+                    
+                    local rippleCorner = Instance.new("UICorner")
+                    rippleCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
+                    rippleCorner.Parent = ripple
+                    
+                    ripple.Parent = optionButton
+                    
+                    TweenElement(ripple, {
+                        Size = UDim2.new(1, 30, 1, 30),
+                        BackgroundTransparency = 1
+                    }, 0.3).Completed:Connect(function()
+                        ripple:Destroy()
+                    end)
+                    
                     selectedOption = option
                     
                     -- Animate text change
-                    local textFadeTween = TweenService:Create(
-                        dropButton,
-                        TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                        {TextTransparency = 1}
-                    )
-                    
-                    textFadeTween:Play()
-                    textFadeTween.Completed:Connect(function()
+                    TweenElement(dropButton, {TextTransparency = 1}, 0.1).Completed:Connect(function()
                         dropButton.Text = option
-                        
-                        local textShowTween = TweenService:Create(
-                            dropButton,
-                            TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                            {TextTransparency = 0}
-                        )
-                        textShowTween:Play()
+                        TweenElement(dropButton, {TextTransparency = 0}, 0.1)
                     end)
                     
                     toggleDropdown()
@@ -1955,25 +1472,7 @@ function GuiLib:CreateWindow(name, size, position)
             
             if not keepSelection or not table.find(options, selectedOption) then
                 selectedOption = options[1] or "Select"
-                
-                -- Animate text change
-                local textFadeTween = TweenService:Create(
-                    dropButton,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                    {TextTransparency = 1}
-                )
-                
-                textFadeTween:Play()
-                textFadeTween.Completed:Connect(function()
-                    dropButton.Text = selectedOption
-                    
-                    local textShowTween = TweenService:Create(
-                        dropButton,
-                        TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                        {TextTransparency = 0}
-                    )
-                    textShowTween:Play()
-                end)
+                dropButton.Text = selectedOption
             end
         end
         
@@ -1987,18 +1486,9 @@ function GuiLib:CreateWindow(name, size, position)
         colorPickerContainer.Name = "ColorPickerContainer"
         colorPickerContainer.Size = UDim2.new(1, -8, 0, 36)
         colorPickerContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
-        colorPickerContainer.BackgroundTransparency = 0.4
+        colorPickerContainer.BackgroundTransparency = 1 -- Start transparent for animation
         colorPickerContainer.BorderSizePixel = 0
         colorPickerContainer.Parent = self.container
-        
-        -- Entrance animation
-        colorPickerContainer.BackgroundTransparency = 1
-        local containerTween = TweenService:Create(
-            colorPickerContainer,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad),
-            {BackgroundTransparency = 0.4}
-        )
-        containerTween:Play()
         
         local containerCorner = Instance.new("UICorner")
         containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
@@ -2010,37 +1500,21 @@ function GuiLib:CreateWindow(name, size, position)
         label.Position = UDim2.new(0, 16, 0, 0)
         label.BackgroundTransparency = 1
         label.TextColor3 = GuiLib.Settings.DefaultColors.Text
+        label.TextTransparency = 1 -- Start transparent for animation
         label.Text = text or "Color Picker"
         label.TextSize = 14
         label.Font = GuiLib.Settings.FontRegular
         label.TextXAlignment = Enum.TextXAlignment.Left
-        label.TextTransparency = 1
         label.Parent = colorPickerContainer
-        
-        -- Text fade in
-        local textTween = TweenService:Create(
-            label,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad),
-            {TextTransparency = 0}
-        )
-        textTween:Play()
         
         local colorDisplay = Instance.new("Frame")
         colorDisplay.Name = "ColorDisplay"
         colorDisplay.Size = UDim2.new(0, 36, 0, 26)
         colorDisplay.Position = UDim2.new(1, -46, 0.5, -13)
         colorDisplay.BackgroundColor3 = default
+        colorDisplay.BackgroundTransparency = 1 -- Start transparent for animation
         colorDisplay.BorderSizePixel = 0
-        colorDisplay.BackgroundTransparency = 1 -- For animation
         colorDisplay.Parent = colorPickerContainer
-        
-        -- Color display fade in
-        local displayTween = TweenService:Create(
-            colorDisplay,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad),
-            {BackgroundTransparency = 0}
-        )
-        displayTween:Play()
         
         local displayCorner = Instance.new("UICorner")
         displayCorner.CornerRadius = UDim.new(0, 4)
@@ -2050,7 +1524,7 @@ function GuiLib:CreateWindow(name, size, position)
         local displayStroke = Instance.new("UIStroke")
         displayStroke.Name = "DisplayStroke"
         displayStroke.Color = Color3.fromRGB(255, 255, 255)
-        displayStroke.Transparency = 0.8
+        displayStroke.Transparency = 1 -- Start transparent for animation
         displayStroke.Thickness = 1
         displayStroke.Parent = colorDisplay
         
@@ -2061,7 +1535,17 @@ function GuiLib:CreateWindow(name, size, position)
         clickButton.Text = ""
         clickButton.Parent = colorDisplay
         
-        -- Color picker functionality with improved animations
+        -- Animate in with sequence
+        TweenElement(colorPickerContainer, {BackgroundTransparency = 0.4}, 0.3)
+        task.delay(0.1, function()
+            TweenElement(label, {TextTransparency = 0}, 0.3)
+        end)
+        task.delay(0.2, function()
+            TweenElement(colorDisplay, {BackgroundTransparency = 0}, 0.3)
+            TweenElement(displayStroke, {Transparency = 0.8}, 0.3)
+        end)
+        
+        -- Color picker functionality
         local pickerFrame = Instance.new("Frame")
         pickerFrame.Name = "PickerFrame"
         pickerFrame.Size = UDim2.new(0, 220, 0, 240)
@@ -2076,6 +1560,20 @@ function GuiLib:CreateWindow(name, size, position)
         local pickerCorner = Instance.new("UICorner")
         pickerCorner.CornerRadius = GuiLib.Settings.CornerRadius
         pickerCorner.Parent = pickerFrame
+        
+        -- Add a drop shadow to the picker panel
+        local pickerShadow = Instance.new("ImageLabel")
+        pickerShadow.Name = "PickerShadow"
+        pickerShadow.Size = UDim2.new(1, 40, 1, 40)
+        pickerShadow.Position = UDim2.new(0, -20, 0, -20)
+        pickerShadow.BackgroundTransparency = 1
+        pickerShadow.Image = "rbxassetid://5554236805"
+        pickerShadow.ImageColor3 = GuiLib.Settings.DefaultColors.Shadow
+        pickerShadow.ImageTransparency = 0.6
+        pickerShadow.ScaleType = Enum.ScaleType.Slice
+        pickerShadow.SliceCenter = Rect.new(23, 23, 277, 277)
+        pickerShadow.ZIndex = 9
+        pickerShadow.Parent = pickerFrame
         
         -- Add a title to the picker
         local pickerTitle = Instance.new("TextLabel")
@@ -2208,39 +1706,23 @@ function GuiLib:CreateWindow(name, size, position)
         currentColorCorner.CornerRadius = UDim.new(0, 4)
         currentColorCorner.Parent = currentColorDisplay
         
-        -- Hover effect for color display with improved animations
+        -- Enhanced hover effect for color display
         clickButton.MouseEnter:Connect(function()
-            local strokeTween = TweenService:Create(
-                displayStroke,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {Transparency = 0.5}
-            )
-            
-            local containerTween = TweenService:Create(
-                colorPickerContainer,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 0.2}
-            )
-            
-            strokeTween:Play()
-            containerTween:Play()
+            SpringTween(colorDisplay, {
+                Size = UDim2.new(0, 40, 0, 28),
+                Position = UDim2.new(1, -48, 0.5, -14)
+            }, 0.8, 4)
+            TweenElement(displayStroke, {Transparency = 0.4}, 0.2)
+            TweenElement(colorPickerContainer, {BackgroundTransparency = 0.2}, 0.2)
         end)
         
         clickButton.MouseLeave:Connect(function()
-            local strokeTween = TweenService:Create(
-                displayStroke,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {Transparency = 0.8}
-            )
-            
-            local containerTween = TweenService:Create(
-                colorPickerContainer,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 0.4}
-            )
-            
-            strokeTween:Play()
-            containerTween:Play()
+            SpringTween(colorDisplay, {
+                Size = UDim2.new(0, 36, 0, 26),
+                Position = UDim2.new(1, -46, 0.5, -13)
+            }, 0.8, 4)
+            TweenElement(displayStroke, {Transparency = 0.8}, 0.2)
+            TweenElement(colorPickerContainer, {BackgroundTransparency = 0.4}, 0.2)
         end)
         
         -- Logic and functionality
@@ -2252,22 +1734,9 @@ function GuiLib:CreateWindow(name, size, position)
             local hsv = Color3.fromHSV(hue, saturation, value)
             
             -- Animate color changes
-            local colorTween = TweenService:Create(
-                colorDisplay,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundColor3 = hsv}
-            )
-            
-            local currentColorTween = TweenService:Create(
-                currentColorDisplay,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundColor3 = hsv}
-            )
-            
-            colorTween:Play()
-            currentColorTween:Play()
-            
-            colorField.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
+            TweenElement(colorDisplay, {BackgroundColor3 = hsv}, 0.2)
+            TweenElement(currentColorDisplay, {BackgroundColor3 = hsv}, 0.2)
+            TweenElement(colorField, {BackgroundColor3 = Color3.fromHSV(hue, 1, 1)}, 0.2)
             
             if callback then
                 callback(hsv)
@@ -2277,56 +1746,47 @@ function GuiLib:CreateWindow(name, size, position)
         end
         
         local function updateSelectors()
-            -- Update hue selector position with animation
-            local hueTween = TweenService:Create(
-                hueSelector,
-                TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                {Position = UDim2.new(hue, -3, 0, -3)}
-            )
-            hueTween:Play()
+            -- Update hue selector position with spring animation
+            SpringTween(hueSelector, {
+                Position = UDim2.new(hue, -3, 0, -3)
+            }, 0.7, 3.5)
             
-            -- Update color selector position with animation
-            local selectorTween = TweenService:Create(
-                colorSelector,
-                TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                {Position = UDim2.new(saturation, 0, 1 - value, 0)}
-            )
-            selectorTween:Play()
+            -- Update color selector position with spring animation
+            SpringTween(colorSelector, {
+                Position = UDim2.new(saturation, 0, 1 - value, 0)
+            }, 0.7, 3.5)
             
             -- Update the color
             selectedColor = updateColor()
-        end
+        }
         
         local function togglePicker()
             pickerOpen = not pickerOpen
             
             if pickerOpen then
-                -- Show the picker with animation
-                pickerFrame.Size = UDim2.new(0, 220, 0, 0)
                 pickerFrame.Visible = true
+                pickerFrame.Size = UDim2.new(0, 0, 0, 0)
                 pickerFrame.BackgroundTransparency = 1
+                pickerShadow.ImageTransparency = 1
                 
-                local expandTween = TweenService:Create(
-                    pickerFrame,
-                    TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
-                    {Size = UDim2.new(0, 220, 0, 240), BackgroundTransparency = 0.1}
-                )
-                expandTween:Play()
+                -- Animate opening
+                SpringTween(pickerFrame, {
+                    Size = UDim2.new(0, 220, 0, 240),
+                    BackgroundTransparency = 0.1
+                }, 0.7, 3)
+                
+                TweenElement(pickerShadow, {ImageTransparency = 0.6}, 0.4)
             else
-                -- Hide the picker with animation
-                local collapseTween = TweenService:Create(
-                    pickerFrame,
-                    TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
-                    {Size = UDim2.new(0, 220, 0, 0), BackgroundTransparency = 1}
-                )
-                
-                collapseTween:Play()
-                collapseTween.Completed:Connect(function()
-                    if not pickerOpen then -- Check again in case it was reopened
-                        pickerFrame.Visible = false
-                    end
+                -- Animate closing
+                TweenElement(pickerFrame, {
+                    Size = UDim2.new(0, 0, 0, 0),
+                    BackgroundTransparency = 1
+                }, 0.3).Completed:Connect(function()
+                    pickerFrame.Visible = false
                 end)
-            end
+                
+                TweenElement(pickerShadow, {ImageTransparency = 1}, 0.2)
+            }
         end
         
         -- Convert RGB to HSV for the default color
@@ -2366,42 +1826,55 @@ function GuiLib:CreateWindow(name, size, position)
         hue, saturation, value = rgbToHsv(default)
         updateSelectors()
         
-        -- Event handlers with improved interactivity
+        -- Event handlers with enhanced feedback
         clickButton.MouseButton1Click:Connect(function()
-            togglePicker()
+            -- Add a pulse effect
+            local pulse = colorDisplay:Clone()
+            pulse.Size = colorDisplay.Size
+            pulse.Position = colorDisplay.Position
+            pulse.BackgroundTransparency = 0.7
+            pulse.ZIndex = colorDisplay.ZIndex - 1
+            pulse.Parent = colorPickerContainer
             
-            -- Add click ripple effect
-            local ripple = Instance.new("Frame")
-            ripple.Name = "Ripple"
-            ripple.AnchorPoint = Vector2.new(0.5, 0.5)
-            ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
-            ripple.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-            ripple.BackgroundTransparency = 0.7
-            ripple.Size = UDim2.new(0, 0, 0, 0)
-            ripple.Parent = colorDisplay
-            
-            local rippleCorner = Instance.new("UICorner")
-            rippleCorner.CornerRadius = UDim.new(1, 0)
-            rippleCorner.Parent = ripple
-            
-            local rippleTween = TweenService:Create(
-                ripple,
-                TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
-                {Size = UDim2.new(2, 0, 2, 0), BackgroundTransparency = 1}
-            )
-            
-            rippleTween:Play()
-            rippleTween.Completed:Connect(function()
-                ripple:Destroy()
+            TweenElement(pulse, {
+                Size = UDim2.new(0, pulse.Size.X.Offset + 16, 0, pulse.Size.Y.Offset + 16),
+                Position = UDim2.new(
+                    pulse.Position.X.Scale,
+                    pulse.Position.X.Offset - 8, 
+                    pulse.Position.Y.Scale,
+                    pulse.Position.Y.Offset - 8
+                ),
+                BackgroundTransparency = 1
+            }, 0.3).Completed:Connect(function()
+                pulse:Destroy()
             end)
+            
+            togglePicker()
         end)
         
+        -- Enhanced hue interaction with feedback
         hueFrame.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local absoluteX = input.Position.X - hueFrame.AbsolutePosition.X
                 local huePercent = math.clamp(absoluteX / hueFrame.AbsoluteSize.X, 0, 1)
                 hue = huePercent
                 updateSelectors()
+                
+                -- Add a highlight effect
+                SpringTween(hueSelector, {
+                    Size = UDim2.new(0, 8, 1, 8)
+                }, 0.8, 4)
+                TweenElement(hueSelector, {BackgroundTransparency = 0.5}, 0.2)
+            end
+        end)
+        
+        hueFrame.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                -- Return to normal size
+                SpringTween(hueSelector, {
+                    Size = UDim2.new(0, 6, 1, 6)
+                }, 0.8, 4)
+                TweenElement(hueSelector, {BackgroundTransparency = 0.7}, 0.2)
             end
         end)
         
@@ -2414,6 +1887,7 @@ function GuiLib:CreateWindow(name, size, position)
             end
         end)
         
+        -- Enhanced color field interaction
         colorField.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local absoluteX = input.Position.X - colorField.AbsolutePosition.X
@@ -2422,13 +1896,27 @@ function GuiLib:CreateWindow(name, size, position)
                 value = 1 - math.clamp(absoluteY / colorField.AbsoluteSize.Y, 0, 1)
                 updateSelectors()
                 
-                -- Add a pulse effect to the selector
-                local pulseTween = TweenService:Create(
-                    selectorInner,
-                    TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out, 0, true),
-                    {Size = UDim2.new(0, 8, 0, 8), Position = UDim2.new(0.5, -4, 0.5, -4)}
-                )
-                pulseTween:Play()
+                -- Add a highlight effect
+                SpringTween(colorSelector, {
+                    BorderSizePixel = 3
+                }, 0.8, 4)
+                SpringTween(selectorInner, {
+                    Size = UDim2.new(0, 8, 0, 8),
+                    Position = UDim2.new(0.5, -4, 0.5, -4)
+                }, 0.8, 4)
+            end
+        end)
+        
+        colorField.InputEnded:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                -- Return to normal size
+                SpringTween(colorSelector, {
+                    BorderSizePixel = 2
+                }, 0.8, 4)
+                SpringTween(selectorInner, {
+                    Size = UDim2.new(0, 6, 0, 6),
+                    Position = UDim2.new(0.5, -3, 0.5, -3)
+                }, 0.8, 4)
             end
         end)
         
@@ -2480,18 +1968,9 @@ function GuiLib:CreateWindow(name, size, position)
         textBoxContainer.Name = "TextBoxContainer"
         textBoxContainer.Size = UDim2.new(1, -8, 0, 66)
         textBoxContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
-        textBoxContainer.BackgroundTransparency = 0.4
+        textBoxContainer.BackgroundTransparency = 1 -- Start transparent for animation
         textBoxContainer.BorderSizePixel = 0
         textBoxContainer.Parent = self.container
-        
-        -- Entrance animation
-        textBoxContainer.BackgroundTransparency = 1
-        local containerTween = TweenService:Create(
-            textBoxContainer,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad),
-            {BackgroundTransparency = 0.4}
-        )
-        containerTween:Play()
         
         local containerCorner = Instance.new("UICorner")
         containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
@@ -2503,27 +1982,21 @@ function GuiLib:CreateWindow(name, size, position)
         label.Position = UDim2.new(0, 16, 0, 0)
         label.BackgroundTransparency = 1
         label.TextColor3 = GuiLib.Settings.DefaultColors.Text
+        label.TextTransparency = 1 -- Start transparent for animation
         label.Text = text or "Text Input"
         label.TextSize = 14
         label.Font = GuiLib.Settings.FontRegular
         label.TextXAlignment = Enum.TextXAlignment.Left
-        label.TextTransparency = 1
         label.Parent = textBoxContainer
-        
-        -- Text fade in
-        local textTween = TweenService:Create(
-            label,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad),
-            {TextTransparency = 0}
-        )
-        textTween:Play()
         
         local inputBox = Instance.new("TextBox")
         inputBox.Name = "InputBox"
         inputBox.Size = UDim2.new(1, -32, 0, 36)
         inputBox.Position = UDim2.new(0, 16, 0, 30)
         inputBox.BackgroundColor3 = GuiLib.Settings.DefaultColors.Dropdown
+        inputBox.BackgroundTransparency = 1 -- Start transparent for animation
         inputBox.TextColor3 = GuiLib.Settings.DefaultColors.Text
+        inputBox.TextTransparency = 1 -- Start transparent for animation
         inputBox.PlaceholderText = placeholder or "Enter text here..."
         inputBox.PlaceholderColor3 = GuiLib.Settings.DefaultColors.TextDimmed
         inputBox.Text = defaultText or ""
@@ -2532,17 +2005,7 @@ function GuiLib:CreateWindow(name, size, position)
         inputBox.TextXAlignment = Enum.TextXAlignment.Left
         inputBox.ClearTextOnFocus = false
         inputBox.ClipsDescendants = true
-        inputBox.TextTransparency = 1
-        inputBox.BackgroundTransparency = 1
         inputBox.Parent = textBoxContainer
-        
-        -- Input box fade in
-        local boxTween = TweenService:Create(
-            inputBox,
-            TweenInfo.new(0.4, Enum.EasingStyle.Quad),
-            {TextTransparency = 0, BackgroundTransparency = 0}
-        )
-        boxTween:Play()
         
         local boxCorner = Instance.new("UICorner")
         boxCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
@@ -2557,164 +2020,67 @@ function GuiLib:CreateWindow(name, size, position)
         local boxStroke = Instance.new("UIStroke")
         boxStroke.Name = "BoxStroke"
         boxStroke.Color = GuiLib.Settings.DefaultColors.Accent
-        boxStroke.Transparency = 0.9
+        boxStroke.Transparency = 1 -- Start transparent for animation
         boxStroke.Thickness = 1.5
         boxStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
         boxStroke.Parent = inputBox
         
-        -- Add focused effect with advanced animations
+        -- Animate in with sequence
+        TweenElement(textBoxContainer, {BackgroundTransparency = 0.4}, 0.3)
+        task.delay(0.1, function()
+            TweenElement(label, {TextTransparency = 0}, 0.25)
+        end)
+        task.delay(0.2, function()
+            TweenElement(inputBox, {BackgroundTransparency = 0, TextTransparency = 0}, 0.25)
+            TweenElement(boxStroke, {Transparency = 0.9}, 0.25)
+        end)
+        
+        -- Enhanced focus effects
         inputBox.Focused:Connect(function()
-            local focusTween = TweenService:Create(
-                inputBox,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {
-                    BackgroundColor3 = Color3.fromRGB(
-                        math.min(GuiLib.Settings.DefaultColors.Dropdown.R * 255 + 15, 255),
-                        math.min(GuiLib.Settings.DefaultColors.Dropdown.G * 255 + 15, 255),
-                        math.min(GuiLib.Settings.DefaultColors.Dropdown.B * 255 + 15, 255)
-                    )
-                }
-            )
+            -- Spring animation for focusing
+            SpringTween(inputBox, {
+                Size = UDim2.new(1, -24, 0, 36),
+                Position = UDim2.new(0, 12, 0, 30),
+                BackgroundColor3 = Color3.fromRGB(
+                    math.min(GuiLib.Settings.DefaultColors.Dropdown.R * 255 + 15, 255),
+                    math.min(GuiLib.Settings.DefaultColors.Dropdown.G * 255 + 15, 255),
+                    math.min(GuiLib.Settings.DefaultColors.Dropdown.B * 255 + 15, 255)
+                )
+            }, 0.8, 4)
+            TweenElement(boxStroke, {Transparency = 0.4}, 0.2)
             
-            local strokeTween = TweenService:Create(
-                boxStroke,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {Transparency = 0.5, Thickness = 2}
-            )
-            
-            -- Slightly increase size for focus effect
-            local sizeTween = TweenService:Create(
-                inputBox,
-                TweenInfo.new(0.3, Enum.EasingStyle.Back),
-                {Size = UDim2.new(1, -28, 0, 36)}
-            )
-            
-            focusTween:Play()
-            strokeTween:Play()
-            sizeTween:Play()
+            -- Also highlight the container
+            TweenElement(textBoxContainer, {BackgroundTransparency = 0.2}, 0.2)
         end)
         
         inputBox.FocusLost:Connect(function(enterPressed)
-            local unfocusTween = TweenService:Create(
-                inputBox,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundColor3 = GuiLib.Settings.DefaultColors.Dropdown}
-            )
-            
-            local strokeTween = TweenService:Create(
-                boxStroke,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {Transparency = 0.9, Thickness = 1.5}
-            )
-            
-            -- Return to original size
-            local sizeTween = TweenService:Create(
-                inputBox,
-                TweenInfo.new(0.3, Enum.EasingStyle.Back),
-                {Size = UDim2.new(1, -32, 0, 36)}
-            )
-            
-            unfocusTween:Play()
-            strokeTween:Play()
-            sizeTween:Play()
+            -- Spring animation for unfocusing
+            SpringTween(inputBox, {
+                Size = UDim2.new(1, -32, 0, 36),
+                Position = UDim2.new(0, 16, 0, 30),
+                BackgroundColor3 = GuiLib.Settings.DefaultColors.Dropdown
+            }, 0.8, 4)
+            TweenElement(boxStroke, {Transparency = 0.9}, 0.2)
+            TweenElement(textBoxContainer, {BackgroundTransparency = 0.4}, 0.2)
             
             if enterPressed and callback then
-                callback(inputBox.Text)
-                
-                -- Add a confirmation effect
-                local flash = Instance.new("Frame")
-                flash.Size = UDim2.new(1, 0, 1, 0)
+                -- Add a flash effect to show submission
+                local flash = inputBox:Clone()
+                flash.Name = "SubmitFlash"
+                flash.Size = inputBox.Size
+                flash.Position = inputBox.Position
                 flash.BackgroundColor3 = GuiLib.Settings.DefaultColors.Accent
-                flash.BackgroundTransparency = 0.7
-                flash.BorderSizePixel = 0
-                flash.ZIndex = 2
-                flash.Parent = inputBox
+                flash.BackgroundTransparency = 0.8
+                flash.Text = ""
+                flash.ZIndex = inputBox.ZIndex - 1
+                flash.Parent = textBoxContainer
                 
-                local flashCorner = Instance.new("UICorner") 
-                flashCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
-                flashCorner.Parent = flash
-                
-                local flashTween = TweenService:Create(
-                    flash,
-                    TweenInfo.new(0.5, Enum.EasingStyle.Quad),
-                    {BackgroundTransparency = 1}
-                )
-                
-                flashTween:Play()
-                flashTween.Completed:Connect(function()
+                TweenElement(flash, {BackgroundTransparency = 1}, 0.5).Completed:Connect(function()
                     flash:Destroy()
                 end)
+                
+                callback(inputBox.Text)
             end
-        end)
-        
-        -- Hover effect
-        inputBox.MouseEnter:Connect(function()
-            if inputBox:IsFocused() then return end
-            
-            local hoverTween = TweenService:Create(
-                inputBox,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {
-                    BackgroundColor3 = Color3.fromRGB(
-                        math.min(GuiLib.Settings.DefaultColors.Dropdown.R * 255 + 5, 255),
-                        math.min(GuiLib.Settings.DefaultColors.Dropdown.G * 255 + 5, 255),
-                        math.min(GuiLib.Settings.DefaultColors.Dropdown.B * 255 + 5, 255)
-                    )
-                }
-            )
-            
-            local strokeTween = TweenService:Create(
-                boxStroke,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {Transparency = 0.7}
-            )
-            
-            hoverTween:Play()
-            strokeTween:Play()
-        end)
-        
-        inputBox.MouseLeave:Connect(function()
-            if inputBox:IsFocused() then return end
-            
-            local unhoverTween = TweenService:Create(
-                inputBox,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundColor3 = GuiLib.Settings.DefaultColors.Dropdown}
-            )
-            
-            local strokeTween = TweenService:Create(
-                boxStroke,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {Transparency = 0.9}
-            )
-            
-            unhoverTween:Play()
-            strokeTween:Play()
-        end)
-        
-        -- Container hover effect
-        textBoxContainer.MouseEnter:Connect(function()
-            if inputBox:IsFocused() then return end
-            
-            local hoverTween = TweenService:Create(
-                textBoxContainer,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 0.2}
-            )
-            
-            hoverTween:Play()
-        end)
-        
-        textBoxContainer.MouseLeave:Connect(function()
-            if inputBox:IsFocused() then return end
-            
-            local unhoverTween = TweenService:Create(
-                textBoxContainer,
-                TweenInfo.new(0.3, Enum.EasingStyle.Quad),
-                {BackgroundTransparency = 0.4}
-            )
-            
-            unhoverTween:Play()
         end)
         
         if callback then
@@ -2729,23 +2095,9 @@ function GuiLib:CreateWindow(name, size, position)
         
         function textBoxFunctions:Set(text)
             -- Animate text change
-            local fadeTween = TweenService:Create(
-                inputBox,
-                TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                {TextTransparency = 1}
-            )
-            
-            fadeTween:Play()
-            fadeTween.Completed:Connect(function()
+            TweenElement(inputBox, {TextTransparency = 1}, 0.15).Completed:Connect(function()
                 inputBox.Text = text or ""
-                
-                local showTween = TweenService:Create(
-                    inputBox,
-                    TweenInfo.new(0.2, Enum.EasingStyle.Quad),
-                    {TextTransparency = 0}
-                )
-                
-                showTween:Play()
+                TweenElement(inputBox, {TextTransparency = 0}, 0.15)
             end)
         end
         
@@ -2774,6 +2126,7 @@ function GuiLib:SetTheme(theme)
     end
 end
 
+-- Predefined themes
 GuiLib.Themes = {
     Modern = {
         DefaultColors = {
@@ -2808,111 +2161,144 @@ GuiLib.Themes = {
             ButtonPressed = Color3.fromRGB(35, 35, 45),
             ButtonEnabled = Color3.fromRGB(40, 160, 80),
             ButtonDisabled = Color3.fromRGB(180, 60, 60),
-            Text = Color3.fromRGB(235, 235, 240),
-            TextDimmed = Color3.fromRGB(160, 160, 170),
-            Accent = Color3.fromRGB(90, 110, 255),
-            AccentDark = Color3.fromRGB(70, 90, 220),
+            Text = Color3.fromRGB(230, 230, 240),
+            TextDimmed = Color3.fromRGB(170, 170, 180),
+            Accent = Color3.fromRGB(90, 110, 235),
+            AccentDark = Color3.fromRGB(70, 90, 210),
             Slider = Color3.fromRGB(60, 60, 70),
-            SliderFill = Color3.fromRGB(90, 110, 255),
+            SliderFill = Color3.fromRGB(90, 110, 235),
             Toggle = Color3.fromRGB(45, 45, 55),
-            ToggleEnabled = Color3.fromRGB(90, 110, 255),
+            ToggleEnabled = Color3.fromRGB(90, 110, 235),
             Dropdown = Color3.fromRGB(45, 45, 55),
             ScrollBar = Color3.fromRGB(65, 65, 75),
-            Shadow = Color3.fromRGB(0, 0, 0)
+            Shadow = Color3.fromRGB(0, 0, 5)
         }
     },
-    NeonNight = {
+    Light = {
         DefaultColors = {
-            Background = Color3.fromRGB(10, 10, 20),
-            BackgroundSecondary = Color3.fromRGB(20, 20, 35),
-            Title = Color3.fromRGB(15, 15, 25),
-            Button = Color3.fromRGB(30, 30, 45),
-            ButtonHover = Color3.fromRGB(50, 50, 80),
-            ButtonPressed = Color3.fromRGB(20, 20, 35),
-            ButtonEnabled = Color3.fromRGB(255, 0, 200),
-            ButtonDisabled = Color3.fromRGB(120, 30, 60),
-            Text = Color3.fromRGB(255, 255, 255),
-            TextDimmed = Color3.fromRGB(170, 170, 190),
-            Accent = Color3.fromRGB(0, 255, 200),
-            AccentDark = Color3.fromRGB(0, 200, 160),
-            Slider = Color3.fromRGB(25, 25, 35),
-            SliderFill = Color3.fromRGB(0, 255, 200),
-            Toggle = Color3.fromRGB(40, 40, 60),
-            ToggleEnabled = Color3.fromRGB(255, 0, 200),
-            Dropdown = Color3.fromRGB(35, 35, 50),
-            ScrollBar = Color3.fromRGB(60, 60, 90),
-            Shadow = Color3.fromRGB(5, 0, 10)
+            Background = Color3.fromRGB(240, 240, 245),
+            BackgroundSecondary = Color3.fromRGB(230, 230, 235),
+            Title = Color3.fromRGB(250, 250, 255),
+            Button = Color3.fromRGB(220, 220, 230),
+            ButtonHover = Color3.fromRGB(210, 210, 220),
+            ButtonPressed = Color3.fromRGB(200, 200, 210),
+            ButtonEnabled = Color3.fromRGB(80, 190, 120),
+            ButtonDisabled = Color3.fromRGB(220, 100, 100),
+            Text = Color3.fromRGB(60, 60, 70),
+            TextDimmed = Color3.fromRGB(120, 120, 130),
+            Accent = Color3.fromRGB(70, 100, 245),
+            AccentDark = Color3.fromRGB(50, 80, 225),
+            Slider = Color3.fromRGB(200, 200, 210),
+            SliderFill = Color3.fromRGB(70, 100, 245),
+            Toggle = Color3.fromRGB(220, 220, 230),
+            ToggleEnabled = Color3.fromRGB(70, 100, 245),
+            Dropdown = Color3.fromRGB(220, 220, 230),
+            ScrollBar = Color3.fromRGB(190, 190, 200),
+            Shadow = Color3.fromRGB(180, 180, 190)
         }
     },
-    PastelDream = {
+    BlueTheme = {
         DefaultColors = {
-            Background = Color3.fromRGB(250, 240, 245),
-            BackgroundSecondary = Color3.fromRGB(240, 225, 230),
-            Title = Color3.fromRGB(230, 200, 210),
-            Button = Color3.fromRGB(220, 180, 200),
-            ButtonHover = Color3.fromRGB(235, 200, 215),
-            ButtonPressed = Color3.fromRGB(210, 170, 190),
-            ButtonEnabled = Color3.fromRGB(180, 240, 190),
-            ButtonDisabled = Color3.fromRGB(250, 140, 140),
-            Text = Color3.fromRGB(70, 50, 60),
-            TextDimmed = Color3.fromRGB(120, 100, 110),
-            Accent = Color3.fromRGB(180, 140, 255),
-            AccentDark = Color3.fromRGB(140, 100, 220),
-            Slider = Color3.fromRGB(200, 180, 200),
-            SliderFill = Color3.fromRGB(180, 140, 255),
-            Toggle = Color3.fromRGB(220, 180, 200),
-            ToggleEnabled = Color3.fromRGB(180, 140, 255),
-            Dropdown = Color3.fromRGB(230, 190, 210),
-            ScrollBar = Color3.fromRGB(200, 160, 190),
-            Shadow = Color3.fromRGB(150, 120, 150)
+            Background = Color3.fromRGB(20, 30, 55),
+            BackgroundSecondary = Color3.fromRGB(30, 40, 65),
+            Title = Color3.fromRGB(15, 25, 45),
+            Button = Color3.fromRGB(35, 45, 75),
+            ButtonHover = Color3.fromRGB(45, 55, 85),
+            ButtonPressed = Color3.fromRGB(25, 35, 65),
+            ButtonEnabled = Color3.fromRGB(40, 170, 100),
+            ButtonDisabled = Color3.fromRGB(190, 70, 70),
+            Text = Color3.fromRGB(230, 240, 255),
+            TextDimmed = Color3.fromRGB(170, 180, 210),
+            Accent = Color3.fromRGB(65, 130, 255),
+            AccentDark = Color3.fromRGB(50, 110, 235),
+            Slider = Color3.fromRGB(40, 50, 80),
+            SliderFill = Color3.fromRGB(65, 130, 255),
+            Toggle = Color3.fromRGB(35, 45, 75),
+            ToggleEnabled = Color3.fromRGB(65, 130, 255),
+            Dropdown = Color3.fromRGB(35, 45, 75),
+            ScrollBar = Color3.fromRGB(45, 55, 85),
+            Shadow = Color3.fromRGB(5, 10, 20)
         }
     },
-    Terminal = {
+    RedTheme = {
         DefaultColors = {
-            Background = Color3.fromRGB(0, 0, 0),
-            BackgroundSecondary = Color3.fromRGB(10, 10, 10),
-            Title = Color3.fromRGB(0, 0, 0),
-            Button = Color3.fromRGB(20, 20, 20),
-            ButtonHover = Color3.fromRGB(30, 30, 30),
-            ButtonPressed = Color3.fromRGB(10, 10, 10),
-            ButtonEnabled = Color3.fromRGB(0, 255, 0),
-            ButtonDisabled = Color3.fromRGB(120, 0, 0),
-            Text = Color3.fromRGB(0, 255, 0),
-            TextDimmed = Color3.fromRGB(0, 120, 0),
-            Accent = Color3.fromRGB(0, 255, 0),
-            AccentDark = Color3.fromRGB(0, 180, 0),
-            Slider = Color3.fromRGB(20, 20, 20),
-            SliderFill = Color3.fromRGB(0, 255, 0),
-            Toggle = Color3.fromRGB(10, 10, 10),
-            ToggleEnabled = Color3.fromRGB(0, 255, 0),
-            Dropdown = Color3.fromRGB(20, 20, 20),
-            ScrollBar = Color3.fromRGB(40, 40, 40),
-            Shadow = Color3.fromRGB(0, 0, 0)
+            Background = Color3.fromRGB(45, 25, 30),
+            BackgroundSecondary = Color3.fromRGB(55, 35, 40),
+            Title = Color3.fromRGB(40, 20, 25),
+            Button = Color3.fromRGB(65, 40, 45),
+            ButtonHover = Color3.fromRGB(75, 50, 55),
+            ButtonPressed = Color3.fromRGB(55, 30, 35),
+            ButtonEnabled = Color3.fromRGB(50, 170, 100),
+            ButtonDisabled = Color3.fromRGB(50, 50, 180),
+            Text = Color3.fromRGB(240, 230, 230),
+            TextDimmed = Color3.fromRGB(200, 180, 180),
+            Accent = Color3.fromRGB(230, 80, 100),
+            AccentDark = Color3.fromRGB(210, 60, 80),
+            Slider = Color3.fromRGB(75, 45, 50),
+            SliderFill = Color3.fromRGB(230, 80, 100),
+            Toggle = Color3.fromRGB(65, 40, 45),
+            ToggleEnabled = Color3.fromRGB(230, 80, 100),
+            Dropdown = Color3.fromRGB(65, 40, 45),
+            ScrollBar = Color3.fromRGB(75, 50, 55),
+            Shadow = Color3.fromRGB(20, 10, 10)
         }
     },
-    Solar = {
+    GreenTheme = {
         DefaultColors = {
-            Background = Color3.fromRGB(255, 252, 240),
-            BackgroundSecondary = Color3.fromRGB(255, 247, 230),
-            Title = Color3.fromRGB(255, 236, 200),
-            Button = Color3.fromRGB(255, 220, 180),
-            ButtonHover = Color3.fromRGB(255, 230, 190),
-            ButtonPressed = Color3.fromRGB(245, 210, 170),
-            ButtonEnabled = Color3.fromRGB(100, 200, 150),
-            ButtonDisabled = Color3.fromRGB(240, 100, 100),
-            Text = Color3.fromRGB(40, 30, 20),
-            TextDimmed = Color3.fromRGB(100, 80, 60),
-            Accent = Color3.fromRGB(255, 160, 70),
-            AccentDark = Color3.fromRGB(240, 140, 50),
-            Slider = Color3.fromRGB(255, 230, 190),
-            SliderFill = Color3.fromRGB(255, 160, 70),
-            Toggle = Color3.fromRGB(255, 220, 180),
-            ToggleEnabled = Color3.fromRGB(255, 160, 70),
-            Dropdown = Color3.fromRGB(250, 215, 170),
-            ScrollBar = Color3.fromRGB(220, 190, 140),
-            Shadow = Color3.fromRGB(200, 180, 120)
+            Background = Color3.fromRGB(25, 45, 35),
+            BackgroundSecondary = Color3.fromRGB(35, 55, 45),
+            Title = Color3.fromRGB(20, 40, 30),
+            Button = Color3.fromRGB(40, 65, 50),
+            ButtonHover = Color3.fromRGB(50, 75, 60),
+            ButtonPressed = Color3.fromRGB(30, 55, 40),
+            ButtonEnabled = Color3.fromRGB(40, 180, 100),
+            ButtonDisabled = Color3.fromRGB(190, 70, 70),
+            Text = Color3.fromRGB(230, 240, 235),
+            TextDimmed = Color3.fromRGB(180, 200, 190),
+            Accent = Color3.fromRGB(70, 200, 120),
+            AccentDark = Color3.fromRGB(50, 180, 100),
+            Slider = Color3.fromRGB(45, 70, 55),
+            SliderFill = Color3.fromRGB(70, 200, 120),
+            Toggle = Color3.fromRGB(40, 65, 50),
+            ToggleEnabled = Color3.fromRGB(70, 200, 120),
+            Dropdown = Color3.fromRGB(40, 65, 50),
+            ScrollBar = Color3.fromRGB(50, 75, 60),
+            Shadow = Color3.fromRGB(10, 20, 15)
+        }
+    },
+    PurpleTheme = {
+        DefaultColors = {
+            Background = Color3.fromRGB(40, 30, 55),
+            BackgroundSecondary = Color3.fromRGB(50, 40, 65),
+            Title = Color3.fromRGB(35, 25, 50),
+            Button = Color3.fromRGB(55, 45, 75),
+            ButtonHover = Color3.fromRGB(65, 55, 85),
+            ButtonPressed = Color3.fromRGB(45, 35, 65),
+            ButtonEnabled = Color3.fromRGB(50, 180, 100),
+            ButtonDisabled = Color3.fromRGB(190, 70, 70),
+            Text = Color3.fromRGB(230, 230, 240),
+            TextDimmed = Color3.fromRGB(180, 180, 200),
+            Accent = Color3.fromRGB(150, 100, 255),
+            AccentDark = Color3.fromRGB(130, 80, 235),
+            Slider = Color3.fromRGB(60, 50, 80),
+            SliderFill = Color3.fromRGB(150, 100, 255),
+            Toggle = Color3.fromRGB(55, 45, 75),
+            ToggleEnabled = Color3.fromRGB(150, 100, 255),
+            Dropdown = Color3.fromRGB(55, 45, 75),
+            ScrollBar = Color3.fromRGB(65, 55, 85),
+            Shadow = Color3.fromRGB(15, 10, 20)
         }
     }
 }
 
-return GuiLib
+-- Safe initialization
+local success, result = pcall(function()
+    return GuiLib
+end)
+
+if success then
+    return GuiLib
+else
+    warn("Failed to initialize GuiLib: " .. tostring(result))
+    return nil
+end
