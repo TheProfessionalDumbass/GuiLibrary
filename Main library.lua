@@ -351,7 +351,7 @@ function GuiLib:CreateWindow(name, size, position)
                 startPos.Y.Scale, startPos.Y.Offset + delta.Y
             )
         }, 0.7, 4) -- Slightly bouncy feel
-    }
+    end
 
     titleBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -1758,7 +1758,7 @@ function GuiLib:CreateWindow(name, size, position)
             
             -- Update the color
             selectedColor = updateColor()
-        }
+        end
         
         local function togglePicker()
             pickerOpen = not pickerOpen
@@ -1786,7 +1786,7 @@ function GuiLib:CreateWindow(name, size, position)
                 end)
                 
                 TweenElement(pickerShadow, {ImageTransparency = 1}, 0.2)
-            }
+            end
         end
         
         -- Convert RGB to HSV for the default color
