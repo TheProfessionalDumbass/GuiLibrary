@@ -1,6 +1,6 @@
+--[[ hello skid ]]
 local GuiLib = {}
 
--- Settings 
 GuiLib.Settings = {
     DefaultColors = {
         Background = Color3.fromRGB(35, 35, 40),
@@ -34,28 +34,25 @@ GuiLib.Settings = {
     EasingDirection = Enum.EasingDirection.Out
 }
 
--- Create the main container with draggable functionality
 function GuiLib:CreateWindow(name, size, position)
     local player = game:GetService("Players").LocalPlayer
     local playerGui = player:WaitForChild("PlayerGui")
 
     local gui = Instance.new("ScreenGui")
-    gui.Name = name or "GuiLibWindow"
+    gui.Name = name or "Guilibwindow"
     gui.ResetOnSpawn = false
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-    
-    -- Handle protection
+
     pcall(function()
         gui.Parent = CoreGui
     end)
-    
-    -- Fallback for HttpGet
+ -- why bother adding this?
     if not gui.Parent then
         pcall(function()
             syn.protect_gui(gui)
             gui.Parent = game:GetService("CoreGui")
         end)
-        
+-- coregui better but extra measure
         if not gui.Parent then
             gui.Parent = playerGui
         end
@@ -70,18 +67,15 @@ function GuiLib:CreateWindow(name, size, position)
     mainFrame.BorderSizePixel = 0
     mainFrame.Parent = gui
 
-    -- Add corner radius
     local corner = Instance.new("UICorner")
     corner.CornerRadius = self.Settings.CornerRadius
     corner.Parent = mainFrame
-    
-    -- Add shadow
+
     local shadow = Instance.new("ImageLabel")
     shadow.Name = "Shadow"
     shadow.Size = UDim2.new(1, 40, 1, 40)
     shadow.Position = UDim2.new(0, -20, 0, -20)
-    shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxassetid://5554236805"
+    shadow.BackgroundTransparency = 0
     shadow.ImageColor3 = self.Settings.DefaultColors.Shadow
     shadow.ImageTransparency = self.Settings.ShadowTransparency
     shadow.ScaleType = Enum.ScaleType.Slice
@@ -89,7 +83,6 @@ function GuiLib:CreateWindow(name, size, position)
     shadow.ZIndex = 0
     shadow.Parent = mainFrame
 
-    -- Title bar
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
     titleBar.Size = UDim2.new(1, 0, 0, 38)
@@ -97,12 +90,11 @@ function GuiLib:CreateWindow(name, size, position)
     titleBar.BackgroundTransparency = self.Settings.DefaultTransparency
     titleBar.BorderSizePixel = 0
     titleBar.Parent = mainFrame
-    
+
     local titleCorner = Instance.new("UICorner")
     titleCorner.CornerRadius = self.Settings.CornerRadius
     titleCorner.Parent = titleBar
-    
-    -- Bottom corner fix
+
     local bottomFrameFix = Instance.new("Frame")
     bottomFrameFix.Name = "BottomFix"
     bottomFrameFix.Size = UDim2.new(1, 0, 0, 10)
@@ -112,8 +104,7 @@ function GuiLib:CreateWindow(name, size, position)
     bottomFrameFix.BorderSizePixel = 0
     bottomFrameFix.ZIndex = 1
     bottomFrameFix.Parent = titleBar
-    
-    -- Title icon
+
     local titleIcon = Instance.new("Frame")
     titleIcon.Name = "TitleIcon"
     titleIcon.Size = UDim2.new(0, 8, 0, 16)
@@ -121,11 +112,11 @@ function GuiLib:CreateWindow(name, size, position)
     titleIcon.BackgroundColor3 = self.Settings.DefaultColors.Accent
     titleIcon.BorderSizePixel = 0
     titleIcon.Parent = titleBar
-    
+
     local titleIconCorner = Instance.new("UICorner")
     titleIconCorner.CornerRadius = UDim.new(0, 2)
     titleIconCorner.Parent = titleIcon
-    
+
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Name = "Title"
     titleLabel.Size = UDim2.new(1, -100, 1, 0)
@@ -137,8 +128,7 @@ function GuiLib:CreateWindow(name, size, position)
     titleLabel.Text = name or "GUI Library"
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Parent = titleBar
-    
-    -- Close button
+
     local closeButton = Instance.new("TextButton")
     closeButton.Name = "CloseButton"
     closeButton.Size = UDim2.new(0, 26, 0, 26)
@@ -148,35 +138,33 @@ function GuiLib:CreateWindow(name, size, position)
     closeButton.Text = ""
     closeButton.AutoButtonColor = false
     closeButton.Parent = titleBar
-    
+
     local closeCorner = Instance.new("UICorner")
     closeCorner.CornerRadius = UDim.new(0, 4)
     closeCorner.Parent = closeButton
-    
+
     local closeIcon = Instance.new("TextLabel")
     closeIcon.Name = "CloseIcon"
     closeIcon.Size = UDim2.new(1, 0, 1, 0)
     closeIcon.BackgroundTransparency = 1
     closeIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
-    closeIcon.Text = "×"
+    closeIcon.Text = "X"
     closeIcon.TextSize = 18
     closeIcon.Font = self.Settings.FontBold
     closeIcon.Parent = closeButton
-    
-    -- Button animations
+-- shittest ui lib ever
     closeButton.MouseEnter:Connect(function()
         closeButton.BackgroundTransparency = 0.1
     end)
-    
+
     closeButton.MouseLeave:Connect(function()
         closeButton.BackgroundTransparency = 0.3
     end)
-    
+
     closeButton.MouseButton1Click:Connect(function()
         gui:Destroy()
     end)
-    
-    -- Scrolling container with smoother padding
+
     local containerBorder = Instance.new("Frame")
     containerBorder.Name = "ContainerBorder"
     containerBorder.Size = UDim2.new(1, -16, 1, -46)
@@ -185,11 +173,11 @@ function GuiLib:CreateWindow(name, size, position)
     containerBorder.BackgroundTransparency = 0.25
     containerBorder.BorderSizePixel = 0
     containerBorder.Parent = mainFrame
-    
+
     local borderCorner = Instance.new("UICorner")
     borderCorner.CornerRadius = UDim.new(0, 6)
     borderCorner.Parent = containerBorder
-    
+
     local scrollingFrame = Instance.new("ScrollingFrame")
     scrollingFrame.Name = "Container"
     scrollingFrame.Size = UDim2.new(1, -12, 1, -12)
@@ -200,15 +188,14 @@ function GuiLib:CreateWindow(name, size, position)
     scrollingFrame.ScrollBarImageColor3 = self.Settings.DefaultColors.ScrollBar
     scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
     scrollingFrame.Parent = containerBorder
-    
-    -- Auto layout
+
     local listLayout = Instance.new("UIListLayout")
     listLayout.Padding = UDim.new(0, 8)
     listLayout.FillDirection = Enum.FillDirection.Vertical
     listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     listLayout.SortOrder = Enum.SortOrder.LayoutOrder
     listLayout.Parent = scrollingFrame
-    
+
     local paddingFrame = Instance.new("UIPadding")
     paddingFrame.PaddingTop = UDim.new(0, 6)
     paddingFrame.PaddingBottom = UDim.new(0, 6)
@@ -216,7 +203,6 @@ function GuiLib:CreateWindow(name, size, position)
     paddingFrame.PaddingRight = UDim.new(0, 2)
     paddingFrame.Parent = scrollingFrame
 
-    -- Dragging for both PC and Mobile
     local isDragging = false
     local dragStart, startPos
 
@@ -248,7 +234,6 @@ function GuiLib:CreateWindow(name, size, position)
         end
     end)
 
-    -- Auto-update container size
     listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 12)
     end)
@@ -258,29 +243,24 @@ function GuiLib:CreateWindow(name, size, position)
     window.mainFrame = mainFrame
     window.container = scrollingFrame
 
-    -- Add this method to your UI library class/module
     function window:ToggleState(visible)
-        -- Check if visible is a boolean
+
         if type(visible) ~= "boolean" then
             error("ToggleState requires a boolean parameter (true or false)")
             return
         end
-        
-        -- Get the main frame
+
         local mainFrame = window.gui:FindFirstChild("MainFrame")
         if not mainFrame then
             warn("MainFrame not found")
             return
         end
-        
-        -- Set visibility
+
         mainFrame.Visible = visible
-        
-        -- Return the new state for chaining
+
         return self
     end
 
-    
     function window:AddSection(title)
         local section = Instance.new("Frame")
         section.Name = "Section"
@@ -289,11 +269,11 @@ function GuiLib:CreateWindow(name, size, position)
         section.BackgroundTransparency = 0.35
         section.BorderSizePixel = 0
         section.Parent = self.container
-        
+
         local sectionCorner = Instance.new("UICorner")
         sectionCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
         sectionCorner.Parent = section
-        
+
         local sectionAccent = Instance.new("Frame")
         sectionAccent.Name = "Accent"
         sectionAccent.Size = UDim2.new(0, 4, 0, 18)
@@ -301,11 +281,11 @@ function GuiLib:CreateWindow(name, size, position)
         sectionAccent.BackgroundColor3 = GuiLib.Settings.DefaultColors.Accent
         sectionAccent.BorderSizePixel = 0
         sectionAccent.Parent = section
-        
+
         local accentCorner = Instance.new("UICorner")
         accentCorner.CornerRadius = UDim.new(0, 2)
         accentCorner.Parent = sectionAccent
-        
+
         local sectionTitle = Instance.new("TextLabel")
         sectionTitle.Name = "Title"
         sectionTitle.Size = UDim2.new(1, -32, 1, 0)
@@ -317,7 +297,7 @@ function GuiLib:CreateWindow(name, size, position)
         sectionTitle.Text = title or "Section"
         sectionTitle.TextXAlignment = Enum.TextXAlignment.Left
         sectionTitle.Parent = section
-        
+
         return section
     end
 
@@ -331,15 +311,14 @@ function GuiLib:CreateWindow(name, size, position)
         labelInstance.TextSize = 14
         labelInstance.Font = GuiLib.Settings.FontRegular
         labelInstance.Parent = self.container
-        
-        -- Create a wrapper object
+
         local label = {
             Instance = labelInstance,
             SetText = function(self, newText)
                 labelInstance.Text = newText
             end
         }
-        
+
         return label
     end
 
@@ -354,12 +333,11 @@ function GuiLib:CreateWindow(name, size, position)
         button.Font = GuiLib.Settings.FontSemibold
         button.AutoButtonColor = false
         button.Parent = self.container
-        
+
         local buttonCorner = Instance.new("UICorner")
         buttonCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
         buttonCorner.Parent = button
-        
-        -- Add a glow effect
+
         local buttonStroke = Instance.new("UIStroke")
         buttonStroke.Name = "ButtonStroke"
         buttonStroke.Color = GuiLib.Settings.DefaultColors.Accent
@@ -367,12 +345,11 @@ function GuiLib:CreateWindow(name, size, position)
         buttonStroke.Thickness = 1.5
         buttonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
         buttonStroke.Parent = button
-        
-        -- Animation effects
+
         button.MouseEnter:Connect(function()
             button.BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonHover
             buttonStroke.Transparency = 0.7
-            -- Tween the button slightly larger
+
             button:TweenSize(
                 UDim2.new(1, -4, 0, 36),
                 GuiLib.Settings.EasingDirection,
@@ -381,11 +358,11 @@ function GuiLib:CreateWindow(name, size, position)
                 true
             )
         end)
-        
+
         button.MouseLeave:Connect(function()
             button.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
             buttonStroke.Transparency = 0.9
-            -- Tween back to original size
+
             button:TweenSize(
                 UDim2.new(1, -8, 0, 36),
                 GuiLib.Settings.EasingDirection,
@@ -394,11 +371,11 @@ function GuiLib:CreateWindow(name, size, position)
                 true
             )
         end)
-        
+
         button.MouseButton1Down:Connect(function()
             button.BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonPressed
             buttonStroke.Transparency = 0.6
-            -- Tween the button slightly smaller
+
             button:TweenSize(
                 UDim2.new(1, -12, 0, 36),
                 GuiLib.Settings.EasingDirection,
@@ -407,11 +384,11 @@ function GuiLib:CreateWindow(name, size, position)
                 true
             )
         end)
-        
+
         button.MouseButton1Up:Connect(function()
             button.BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonHover
             buttonStroke.Transparency = 0.7
-            -- Tween back to hover size
+
             button:TweenSize(
                 UDim2.new(1, -4, 0, 36),
                 GuiLib.Settings.EasingDirection,
@@ -420,11 +397,11 @@ function GuiLib:CreateWindow(name, size, position)
                 true
             )
         end)
-        
+
         if callback then
             button.MouseButton1Click:Connect(callback)
         end
-        
+
         return button
     end
 
@@ -436,11 +413,11 @@ function GuiLib:CreateWindow(name, size, position)
         toggleContainer.BackgroundTransparency = 0.4
         toggleContainer.BorderSizePixel = 0
         toggleContainer.Parent = self.container
-        
+
         local containerCorner = Instance.new("UICorner")
         containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
         containerCorner.Parent = toggleContainer
-        
+
         local label = Instance.new("TextLabel")
         label.Name = "Label"
         label.Size = UDim2.new(1, -64, 1, 0)
@@ -452,7 +429,7 @@ function GuiLib:CreateWindow(name, size, position)
         label.Font = GuiLib.Settings.FontRegular
         label.TextXAlignment = Enum.TextXAlignment.Left
         label.Parent = toggleContainer
-        
+
         local toggleButton = Instance.new("Frame")
         toggleButton.Name = "ToggleButton"
         toggleButton.Size = UDim2.new(0, 44, 0, 24)
@@ -460,11 +437,11 @@ function GuiLib:CreateWindow(name, size, position)
         toggleButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.Toggle
         toggleButton.BorderSizePixel = 0
         toggleButton.Parent = toggleContainer
-        
+
         local toggleCorner = Instance.new("UICorner")
         toggleCorner.CornerRadius = UDim.new(1, 0)
         toggleCorner.Parent = toggleButton
-        
+
         local toggleIndicator = Instance.new("Frame")
         toggleIndicator.Name = "Indicator"
         toggleIndicator.Size = UDim2.new(0, 18, 0, 18)
@@ -472,24 +449,24 @@ function GuiLib:CreateWindow(name, size, position)
         toggleIndicator.BackgroundColor3 = GuiLib.Settings.DefaultColors.Text
         toggleIndicator.BorderSizePixel = 0
         toggleIndicator.Parent = toggleButton
-        
+
         local indicatorCorner = Instance.new("UICorner")
         indicatorCorner.CornerRadius = UDim.new(1, 0)
         indicatorCorner.Parent = toggleIndicator
-        
+
         local clickArea = Instance.new("TextButton")
         clickArea.Name = "ClickArea"
         clickArea.Size = UDim2.new(1, 0, 1, 0)
         clickArea.BackgroundTransparency = 1
         clickArea.Text = ""
         clickArea.Parent = toggleContainer
-        
+
         local isEnabled = default or false
-        
+
         local function updateVisuals()
             if isEnabled then
                 toggleButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.ToggleEnabled
-                -- Smooth animation
+
                 toggleIndicator:TweenPosition(
                     UDim2.new(0, 23, 0.5, -9),
                     GuiLib.Settings.EasingDirection,
@@ -499,7 +476,7 @@ function GuiLib:CreateWindow(name, size, position)
                 )
             else
                 toggleButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.Toggle
-                -- Smooth animation
+
                 toggleIndicator:TweenPosition(
                     UDim2.new(0, 3, 0.5, -9),
                     GuiLib.Settings.EasingDirection,
@@ -509,18 +486,17 @@ function GuiLib:CreateWindow(name, size, position)
                 )
             end
         end
-        
+
         updateVisuals()
-        
-        -- Hover effect
+
         clickArea.MouseEnter:Connect(function()
             toggleContainer.BackgroundTransparency = 0.2
         end)
-        
+
         clickArea.MouseLeave:Connect(function()
             toggleContainer.BackgroundTransparency = 0.4
         end)
-        
+
         clickArea.MouseButton1Click:Connect(function()
             isEnabled = not isEnabled
             updateVisuals()
@@ -528,9 +504,9 @@ function GuiLib:CreateWindow(name, size, position)
                 callback(isEnabled)
             end
         end)
-        
+
         local toggleFunctions = {}
-        
+
         function toggleFunctions:Set(value)
             if type(value) == "boolean" then
                 isEnabled = value
@@ -540,11 +516,11 @@ function GuiLib:CreateWindow(name, size, position)
                 end
             end
         end
-        
+
         function toggleFunctions:Get()
             return isEnabled
         end
-        
+
         return toggleFunctions
     end
 
@@ -553,7 +529,7 @@ function GuiLib:CreateWindow(name, size, position)
         max = max or 100
         default = default or min
         precision = precision or 1
-        
+
         local sliderContainer = Instance.new("Frame")
         sliderContainer.Name = "SliderContainer"
         sliderContainer.Size = UDim2.new(1, -8, 0, 56)
@@ -561,11 +537,11 @@ function GuiLib:CreateWindow(name, size, position)
         sliderContainer.BackgroundTransparency = 0.4
         sliderContainer.BorderSizePixel = 0
         sliderContainer.Parent = self.container
-        
+
         local containerCorner = Instance.new("UICorner")
         containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
         containerCorner.Parent = sliderContainer
-        
+
         local label = Instance.new("TextLabel")
         label.Name = "Label"
         label.Size = UDim2.new(1, -100, 0, 30)
@@ -577,7 +553,7 @@ function GuiLib:CreateWindow(name, size, position)
         label.Font = GuiLib.Settings.FontRegular
         label.TextXAlignment = Enum.TextXAlignment.Left
         label.Parent = sliderContainer
-        
+
         local valueDisplay = Instance.new("TextLabel")
         valueDisplay.Name = "Value"
         valueDisplay.Size = UDim2.new(0, 70, 0, 30)
@@ -589,8 +565,7 @@ function GuiLib:CreateWindow(name, size, position)
         valueDisplay.Font = GuiLib.Settings.FontSemibold
         valueDisplay.TextXAlignment = Enum.TextXAlignment.Right
         valueDisplay.Parent = sliderContainer
-        
-        -- Change to TextButton to capture input on mobile
+
         local sliderBarContainer = Instance.new("Frame")
         sliderBarContainer.Name = "SliderBarContainer"
         sliderBarContainer.Size = UDim2.new(1, -32, 0, 8)
@@ -598,29 +573,29 @@ function GuiLib:CreateWindow(name, size, position)
         sliderBarContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Slider
         sliderBarContainer.BorderSizePixel = 0
         sliderBarContainer.Parent = sliderContainer
-        
+
         local barContainerCorner = Instance.new("UICorner")
         barContainerCorner.CornerRadius = UDim.new(1, 0)
         barContainerCorner.Parent = sliderBarContainer
-        
+
         local sliderBar = Instance.new("TextButton")
         sliderBar.Name = "SliderBar"
         sliderBar.Size = UDim2.new(1, 0, 1, 0)
         sliderBar.BackgroundTransparency = 1
         sliderBar.Text = ""
         sliderBar.Parent = sliderBarContainer
-        
+
         local sliderFill = Instance.new("Frame")
         sliderFill.Name = "SliderFill"
         sliderFill.Size = UDim2.new((default - min) / (max - min), 0, 1, 0)
         sliderFill.BackgroundColor3 = GuiLib.Settings.DefaultColors.SliderFill
         sliderFill.BorderSizePixel = 0
         sliderFill.Parent = sliderBarContainer
-        
+
         local fillCorner = Instance.new("UICorner")
         fillCorner.CornerRadius = UDim.new(1, 0)
         fillCorner.Parent = sliderFill
-        
+
         local sliderButton = Instance.new("TextButton")
         sliderButton.Name = "SliderButton"
         sliderButton.Size = UDim2.new(0, 18, 0, 18)
@@ -629,25 +604,24 @@ function GuiLib:CreateWindow(name, size, position)
         sliderButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.SliderFill
         sliderButton.Text = ""
         sliderButton.Parent = sliderBarContainer
-        
+
         local buttonCorner = Instance.new("UICorner")
         buttonCorner.CornerRadius = UDim.new(1, 0)
         buttonCorner.Parent = sliderButton
-        
-        -- Add a glow effect to the button
+
         local buttonStroke = Instance.new("UIStroke")
         buttonStroke.Name = "ButtonStroke"
         buttonStroke.Color = Color3.fromRGB(255, 255, 255)
         buttonStroke.Transparency = 0.7
         buttonStroke.Thickness = 1.5
         buttonStroke.Parent = sliderButton
-        
+
         local function updateSlider(value)
             local newValue = math.clamp(value, min, max)
             if precision then
                 newValue = math.floor(newValue / precision) * precision
             end
-            
+
             local percent = (newValue - min) / (max - min)
             sliderFill:TweenSize(
                 UDim2.new(percent, 0, 1, 0), 
@@ -656,7 +630,7 @@ function GuiLib:CreateWindow(name, size, position)
                 0.1,
                 true
             )
-            
+
             sliderButton:TweenPosition(
                 UDim2.new(percent, 0, 0.5, 0),
                 GuiLib.Settings.EasingDirection,
@@ -664,31 +638,29 @@ function GuiLib:CreateWindow(name, size, position)
                 0.1,
                 true
             )
-            
+
             valueDisplay.Text = tostring(newValue)
-            
+
             if callback then
                 callback(newValue)
             end
-            
+
             return newValue
         end
-        
+
         local currentValue = default
         updateSlider(currentValue)
-        
+
         local dragging = false
         local userInputService = game:GetService("UserInputService")
-        
-        -- Function to calculate value from position
+
         local function calculateValueFromPosition(inputPosition)
             local barPos = sliderBarContainer.AbsolutePosition.X
             local barWidth = sliderBarContainer.AbsoluteSize.X
             local percent = math.clamp((inputPosition.X - barPos) / barWidth, 0, 1)
             return min + (max - min) * percent
         end
-        
-        -- Hover and pressed effects
+
         sliderButton.MouseEnter:Connect(function()
             sliderButton:TweenSize(
                 UDim2.new(0, 20, 0, 20),
@@ -699,7 +671,7 @@ function GuiLib:CreateWindow(name, size, position)
             )
             buttonStroke.Transparency = 0.5
         end)
-        
+
         sliderButton.MouseLeave:Connect(function()
             if not dragging then
                 sliderButton:TweenSize(
@@ -712,8 +684,7 @@ function GuiLib:CreateWindow(name, size, position)
                 buttonStroke.Transparency = 0.7
             end
         end)
-        
-        -- Handle initial press (both mouse and touch)
+
         sliderButton.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 or 
                input.UserInputType == Enum.UserInputType.Touch then
@@ -728,8 +699,7 @@ function GuiLib:CreateWindow(name, size, position)
                 buttonStroke.Transparency = 0.3
             end
         end)
-        
-        -- Handle bar click/tap (both mouse and touch)
+
         sliderBar.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 or 
                input.UserInputType == Enum.UserInputType.Touch then
@@ -745,8 +715,7 @@ function GuiLib:CreateWindow(name, size, position)
                 currentValue = updateSlider(calculateValueFromPosition(input.Position))
             end
         end)
-        
-        -- Handle input ending (both mouse and touch)
+
         userInputService.InputEnded:Connect(function(input)
             if (input.UserInputType == Enum.UserInputType.MouseButton1 or 
                 input.UserInputType == Enum.UserInputType.Touch) and dragging then
@@ -761,8 +730,7 @@ function GuiLib:CreateWindow(name, size, position)
                 buttonStroke.Transparency = 0.7
             end
         end)
-        
-        -- Handle drag movement (both mouse and touch)
+
         userInputService.InputChanged:Connect(function(input)
             if dragging and 
                (input.UserInputType == Enum.UserInputType.MouseMovement or 
@@ -770,17 +738,17 @@ function GuiLib:CreateWindow(name, size, position)
                 currentValue = updateSlider(calculateValueFromPosition(input.Position))
             end
         end)
-        
+
         local sliderFunctions = {}
-        
+
         function sliderFunctions:Set(value)
             currentValue = updateSlider(value)
         end
-        
+
         function sliderFunctions:Get()
             return currentValue
         end
-        
+
         return sliderFunctions
     end
 
@@ -793,11 +761,11 @@ function GuiLib:CreateWindow(name, size, position)
         dropdownContainer.BorderSizePixel = 0
         dropdownContainer.ClipsDescendants = true
         dropdownContainer.Parent = self.container
-        
+
         local containerCorner = Instance.new("UICorner")
         containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
         containerCorner.Parent = dropdownContainer
-        
+
         local label = Instance.new("TextLabel")
         label.Name = "Label"
         label.Size = UDim2.new(1, -16, 0, 30)
@@ -809,7 +777,7 @@ function GuiLib:CreateWindow(name, size, position)
         label.Font = GuiLib.Settings.FontRegular
         label.TextXAlignment = Enum.TextXAlignment.Left
         label.Parent = dropdownContainer
-        
+
         local dropButton = Instance.new("TextButton")
         dropButton.Name = "DropButton"
         dropButton.Size = UDim2.new(1, -32, 0, 36)
@@ -821,11 +789,11 @@ function GuiLib:CreateWindow(name, size, position)
         dropButton.Font = GuiLib.Settings.FontSemibold
         dropButton.AutoButtonColor = false
         dropButton.Parent = dropdownContainer
-        
+
         local buttonCorner = Instance.new("UICorner")
         buttonCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
         buttonCorner.Parent = dropButton
-        
+
         local icon = Instance.new("TextLabel")
         icon.Name = "Icon"
         icon.Size = UDim2.new(0, 20, 0, 20)
@@ -836,7 +804,7 @@ function GuiLib:CreateWindow(name, size, position)
         icon.TextSize = 14
         icon.Font = GuiLib.Settings.FontBold
         icon.Parent = dropButton
-        
+
         local dropFrame = Instance.new("Frame")
         dropFrame.Name = "DropFrame"
         dropFrame.Size = UDim2.new(1, 0, 0, 0)
@@ -847,11 +815,11 @@ function GuiLib:CreateWindow(name, size, position)
         dropFrame.Visible = false
         dropFrame.ZIndex = 5
         dropFrame.Parent = dropButton
-        
+
         local frameCorner = Instance.new("UICorner")
         frameCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
         frameCorner.Parent = dropFrame
-        
+
         local optionList = Instance.new("ScrollingFrame")
         optionList.Name = "OptionList"
         optionList.Size = UDim2.new(1, -8, 1, -8)
@@ -862,18 +830,17 @@ function GuiLib:CreateWindow(name, size, position)
         optionList.ScrollBarImageColor3 = GuiLib.Settings.DefaultColors.ScrollBar
         optionList.ZIndex = 6
         optionList.Parent = dropFrame
-        
+
         local listLayout = Instance.new("UIListLayout")
         listLayout.Padding = UDim.new(0, 4)
         listLayout.FillDirection = Enum.FillDirection.Vertical
         listLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         listLayout.SortOrder = Enum.SortOrder.LayoutOrder
         listLayout.Parent = optionList
-        
+
         local isOpen = false
         local selectedOption = default or (options and options[1]) or "Select"
-        
-        -- Add a button glow effect
+
         local buttonStroke = Instance.new("UIStroke")
         buttonStroke.Name = "ButtonStroke"
         buttonStroke.Color = GuiLib.Settings.DefaultColors.Accent
@@ -881,8 +848,7 @@ function GuiLib:CreateWindow(name, size, position)
         buttonStroke.Thickness = 1.5
         buttonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
         buttonStroke.Parent = dropButton
-        
-        -- Hover effects
+
         dropButton.MouseEnter:Connect(function()
             buttonStroke.Transparency = 0.7
             dropButton.BackgroundColor3 = Color3.fromRGB(
@@ -891,24 +857,23 @@ function GuiLib:CreateWindow(name, size, position)
                 math.min(GuiLib.Settings.DefaultColors.Dropdown.B * 255 + 10, 255)
             )
         end)
-        
+
         dropButton.MouseLeave:Connect(function()
             buttonStroke.Transparency = 0.9
             dropButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.Dropdown
         end)
-        
+
         local function toggleDropdown()
             isOpen = not isOpen
-            
+
             if isOpen then
                 icon.Text = "▲"
                 icon.TextColor3 = GuiLib.Settings.DefaultColors.Accent
                 dropFrame.Visible = true
-                
+
                 local optionsHeight = #options * 34 + (#options - 1) * 4
-                optionsHeight = math.min(optionsHeight, 150) -- Max height
-                
-                -- Expand the container to accommodate the dropdown
+                optionsHeight = math.min(optionsHeight, 150) 
+
                 dropdownContainer:TweenSize(
                     UDim2.new(1, -8, 0, 66 + optionsHeight),
                     GuiLib.Settings.EasingDirection,
@@ -916,7 +881,7 @@ function GuiLib:CreateWindow(name, size, position)
                     0.3,
                     true
                 )
-                
+
                 dropFrame:TweenSize(
                     UDim2.new(1, 0, 0, optionsHeight),
                     GuiLib.Settings.EasingDirection,
@@ -924,13 +889,12 @@ function GuiLib:CreateWindow(name, size, position)
                     0.3,
                     true
                 )
-                
+
                 optionList.CanvasSize = UDim2.new(0, 0, 0, #options * 34 + (#options - 1) * 4)
             else
                 icon.Text = "▼"
                 icon.TextColor3 = GuiLib.Settings.DefaultColors.Accent
-                
-                -- Collapse back to original size
+
                 dropdownContainer:TweenSize(
                     UDim2.new(1, -8, 0, 66),
                     GuiLib.Settings.EasingDirection,
@@ -938,7 +902,7 @@ function GuiLib:CreateWindow(name, size, position)
                     0.3,
                     true
                 )
-                
+
                 dropFrame:TweenSize(
                     UDim2.new(1, 0, 0, 0),
                     GuiLib.Settings.EasingDirection,
@@ -951,10 +915,9 @@ function GuiLib:CreateWindow(name, size, position)
                 )
             end
         end
-        
+
         dropButton.MouseButton1Click:Connect(toggleDropdown)
-        
-        -- Create option buttons
+
         if options then
             for i, option in ipairs(options) do
                 local optionButton = Instance.new("TextButton")
@@ -969,41 +932,39 @@ function GuiLib:CreateWindow(name, size, position)
                 optionButton.ZIndex = 7
                 optionButton.AutoButtonColor = false
                 optionButton.Parent = optionList
-                
+
                 local optionCorner = Instance.new("UICorner")
                 optionCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
                 optionCorner.Parent = optionButton
-                
-                -- Option hover effect
+
                 optionButton.MouseEnter:Connect(function()
                     optionButton.BackgroundTransparency = 0
                     optionButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonHover
                 end)
-                
+
                 optionButton.MouseLeave:Connect(function()
                     optionButton.BackgroundTransparency = 0.2
                     optionButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
                 end)
-                
+
                 optionButton.MouseButton1Click:Connect(function()
                     selectedOption = option
                     dropButton.Text = option
                     toggleDropdown()
-                    
+
                     if callback then
                         callback(option)
                     end
                 end)
             end
         end
-        
-        -- Close dropdown when clicking outside
+
         game:GetService("UserInputService").InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 and isOpen then
                 local mousePos = game:GetService("UserInputService"):GetMouseLocation()
                 local dropFramePos = dropFrame.AbsolutePosition
                 local dropFrameSize = dropFrame.AbsoluteSize
-                
+
                 if mousePos.X < dropFramePos.X or mousePos.X > dropFramePos.X + dropFrameSize.X or
                    mousePos.Y < dropFramePos.Y or mousePos.Y > dropFramePos.Y + dropFrameSize.Y then
                     if mousePos.X < dropButton.AbsolutePosition.X or mousePos.X > dropButton.AbsolutePosition.X + dropButton.AbsoluteSize.X or
@@ -1013,35 +974,33 @@ function GuiLib:CreateWindow(name, size, position)
                 end
             end
         end)
-        
+
         local dropdownFunctions = {}
-        
+
         function dropdownFunctions:Set(option)
             if table.find(options, option) then
                 selectedOption = option
                 dropButton.Text = option
-                
+
                 if callback then
                     callback(option)
                 end
             end
         end
-        
+
         function dropdownFunctions:Get()
             return selectedOption
         end
-        
+
         function dropdownFunctions:Refresh(newOptions, keepSelection)
             options = newOptions
-            
-            -- Clear existing options
+
             for _, child in ipairs(optionList:GetChildren()) do
                 if child:IsA("TextButton") then
                     child:Destroy()
                 end
             end
-            
-            -- Create new option buttons
+
             for i, option in ipairs(options) do
                 local optionButton = Instance.new("TextButton")
                 optionButton.Name = "Option_" .. option
@@ -1055,47 +1014,46 @@ function GuiLib:CreateWindow(name, size, position)
                 optionButton.ZIndex = 7
                 optionButton.AutoButtonColor = false
                 optionButton.Parent = optionList
-                
+
                 local optionCorner = Instance.new("UICorner")
                 optionCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
                 optionCorner.Parent = optionButton
-                
-                -- Option hover effect
+
                 optionButton.MouseEnter:Connect(function()
                     optionButton.BackgroundTransparency = 0
                     optionButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonHover
                 end)
-                
+
                 optionButton.MouseLeave:Connect(function()
                     optionButton.BackgroundTransparency = 0.2
                     optionButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
                 end)
-                
+
                 optionButton.MouseButton1Click:Connect(function()
                     selectedOption = option
                     dropButton.Text = option
                     toggleDropdown()
-                    
+
                     if callback then
                         callback(option)
                     end
                 end)
             end
-            
+
             optionList.CanvasSize = UDim2.new(0, 0, 0, #options * 34 + (#options - 1) * 4)
-            
+
             if not keepSelection or not table.find(options, selectedOption) then
                 selectedOption = options[1] or "Select"
                 dropButton.Text = selectedOption
             end
         end
-        
+
         return dropdownFunctions
     end
 
     function window:AddColorPicker(text, default, callback)
         default = default or Color3.fromRGB(255, 255, 255)
-        
+
         local colorPickerContainer = Instance.new("Frame")
         colorPickerContainer.Name = "ColorPickerContainer"
         colorPickerContainer.Size = UDim2.new(1, -8, 0, 36)
@@ -1103,11 +1061,11 @@ function GuiLib:CreateWindow(name, size, position)
         colorPickerContainer.BackgroundTransparency = 0.4
         colorPickerContainer.BorderSizePixel = 0
         colorPickerContainer.Parent = self.container
-        
+
         local containerCorner = Instance.new("UICorner")
         containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
         containerCorner.Parent = colorPickerContainer
-        
+
         local label = Instance.new("TextLabel")
         label.Name = "Label"
         label.Size = UDim2.new(1, -66, 1, 0)
@@ -1119,7 +1077,7 @@ function GuiLib:CreateWindow(name, size, position)
         label.Font = GuiLib.Settings.FontRegular
         label.TextXAlignment = Enum.TextXAlignment.Left
         label.Parent = colorPickerContainer
-        
+
         local colorDisplay = Instance.new("Frame")
         colorDisplay.Name = "ColorDisplay"
         colorDisplay.Size = UDim2.new(0, 36, 0, 26)
@@ -1127,27 +1085,25 @@ function GuiLib:CreateWindow(name, size, position)
         colorDisplay.BackgroundColor3 = default
         colorDisplay.BorderSizePixel = 0
         colorDisplay.Parent = colorPickerContainer
-        
+
         local displayCorner = Instance.new("UICorner")
         displayCorner.CornerRadius = UDim.new(0, 4)
         displayCorner.Parent = colorDisplay
-        
-        -- Add a stroke to the color display
+
         local displayStroke = Instance.new("UIStroke")
         displayStroke.Name = "DisplayStroke"
         displayStroke.Color = Color3.fromRGB(255, 255, 255)
         displayStroke.Transparency = 0.8
         displayStroke.Thickness = 1
         displayStroke.Parent = colorDisplay
-        
+
         local clickButton = Instance.new("TextButton")
         clickButton.Name = "ClickButton"
         clickButton.Size = UDim2.new(1, 0, 1, 0)
         clickButton.BackgroundTransparency = 1
         clickButton.Text = ""
         clickButton.Parent = colorDisplay
-        
-        -- Color picker functionality
+
         local pickerFrame = Instance.new("Frame")
         pickerFrame.Name = "PickerFrame"
         pickerFrame.Size = UDim2.new(0, 220, 0, 240)
@@ -1158,12 +1114,11 @@ function GuiLib:CreateWindow(name, size, position)
         pickerFrame.Visible = false
         pickerFrame.ZIndex = 10
         pickerFrame.Parent = colorPickerContainer
-        
+
         local pickerCorner = Instance.new("UICorner")
         pickerCorner.CornerRadius = GuiLib.Settings.CornerRadius
         pickerCorner.Parent = pickerFrame
-        
-        -- Add a title to the picker
+
         local pickerTitle = Instance.new("TextLabel")
         pickerTitle.Name = "PickerTitle"
         pickerTitle.Size = UDim2.new(1, 0, 0, 30)
@@ -1174,19 +1129,18 @@ function GuiLib:CreateWindow(name, size, position)
         pickerTitle.Font = GuiLib.Settings.FontSemibold
         pickerTitle.ZIndex = 11
         pickerTitle.Parent = pickerFrame
-        
-        -- Hue selector
+
         local hueFrame = Instance.new("Frame")
         hueFrame.Name = "HueFrame"
         hueFrame.Size = UDim2.new(0, 190, 0, 20)
         hueFrame.Position = UDim2.new(0.5, -95, 0, 190)
         hueFrame.ZIndex = 11
         hueFrame.Parent = pickerFrame
-        
+
         local hueCorner = Instance.new("UICorner")
         hueCorner.CornerRadius = UDim.new(0, 4)
         hueCorner.Parent = hueFrame
-        
+
         local hueGradient = Instance.new("UIGradient")
         hueGradient.Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
@@ -1198,7 +1152,7 @@ function GuiLib:CreateWindow(name, size, position)
             ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
         })
         hueGradient.Parent = hueFrame
-        
+
         local hueSelector = Instance.new("Frame")
         hueSelector.Name = "HueSelector"
         hueSelector.Size = UDim2.new(0, 6, 1, 6)
@@ -1209,8 +1163,7 @@ function GuiLib:CreateWindow(name, size, position)
         hueSelector.BackgroundTransparency = 0.7
         hueSelector.ZIndex = 12
         hueSelector.Parent = hueFrame
-        
-        -- Color saturation/value picker
+
         local colorField = Instance.new("Frame")
         colorField.Name = "ColorField"
         colorField.Size = UDim2.new(0, 190, 0, 150)
@@ -1219,11 +1172,11 @@ function GuiLib:CreateWindow(name, size, position)
         colorField.BorderSizePixel = 0
         colorField.ZIndex = 11
         colorField.Parent = pickerFrame
-        
+
         local colorCorner = Instance.new("UICorner")
         colorCorner.CornerRadius = UDim.new(0, 4)
         colorCorner.Parent = colorField
-        
+
         local saturationGradient = Instance.new("UIGradient")
         saturationGradient.Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
@@ -1234,7 +1187,7 @@ function GuiLib:CreateWindow(name, size, position)
             NumberSequenceKeypoint.new(1, 0)
         })
         saturationGradient.Parent = colorField
-        
+
         local brightnessFrame = Instance.new("Frame")
         brightnessFrame.Name = "BrightnessFrame"
         brightnessFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -1243,7 +1196,7 @@ function GuiLib:CreateWindow(name, size, position)
         brightnessFrame.BorderSizePixel = 0
         brightnessFrame.ZIndex = 12
         brightnessFrame.Parent = colorField
-        
+
         local brightnessGradient = Instance.new("UIGradient")
         brightnessGradient.Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0, 0)),
@@ -1251,11 +1204,11 @@ function GuiLib:CreateWindow(name, size, position)
         })
         brightnessGradient.Rotation = 90
         brightnessGradient.Parent = brightnessFrame
-        
+
         local brightnessCorner = Instance.new("UICorner")
         brightnessCorner.CornerRadius = UDim.new(0, 4)
         brightnessCorner.Parent = brightnessFrame
-        
+
         local colorSelector = Instance.new("Frame")
         colorSelector.Name = "ColorSelector"
         colorSelector.Size = UDim2.new(0, 14, 0, 14)
@@ -1265,8 +1218,7 @@ function GuiLib:CreateWindow(name, size, position)
         colorSelector.BorderColor3 = Color3.fromRGB(255, 255, 255)
         colorSelector.ZIndex = 13
         colorSelector.Parent = colorField
-        
-        -- Add a circle inside the selector
+
         local selectorInner = Instance.new("Frame")
         selectorInner.Name = "SelectorInner"
         selectorInner.Size = UDim2.new(0, 6, 0, 6)
@@ -1275,12 +1227,11 @@ function GuiLib:CreateWindow(name, size, position)
         selectorInner.BorderSizePixel = 0
         selectorInner.ZIndex = 14
         selectorInner.Parent = colorSelector
-        
+
         local innerCorner = Instance.new("UICorner")
         innerCorner.CornerRadius = UDim.new(1, 0)
         innerCorner.Parent = selectorInner
-        
-        -- Add current color display
+
         local currentColorDisplay = Instance.new("Frame")
         currentColorDisplay.Name = "CurrentColor"
         currentColorDisplay.Size = UDim2.new(0, 190, 0, 30)
@@ -1289,64 +1240,59 @@ function GuiLib:CreateWindow(name, size, position)
         currentColorDisplay.BorderSizePixel = 0
         currentColorDisplay.ZIndex = 11
         currentColorDisplay.Parent = pickerFrame
-        
+
         local currentColorCorner = Instance.new("UICorner")
         currentColorCorner.CornerRadius = UDim.new(0, 4)
         currentColorCorner.Parent = currentColorDisplay
-        
-        -- Hover effect for color display
+
         clickButton.MouseEnter:Connect(function()
             displayStroke.Transparency = 0.5
             colorPickerContainer.BackgroundTransparency = 0.2
         end)
-        
+
         clickButton.MouseLeave:Connect(function()
             displayStroke.Transparency = 0.8
             colorPickerContainer.BackgroundTransparency = 0.4
         end)
-        
-        -- Logic and functionality
+
         local pickerOpen = false
         local selectedColor = default
         local hue, saturation, value = 0, 0, 1
-        
+
         local function updateColor()
             local hsv = Color3.fromHSV(hue, saturation, value)
             colorDisplay.BackgroundColor3 = hsv
             currentColorDisplay.BackgroundColor3 = hsv
             colorField.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
-            
+
             if callback then
                 callback(hsv)
             end
-            
+
             return hsv
         end
-        
+
         local function updateSelectors()
-            -- Update hue selector position
+
             hueSelector.Position = UDim2.new(hue, -3, 0, -3)
-            
-            -- Update color selector position
+
             colorSelector.Position = UDim2.new(saturation, 0, 1 - value, 0)
-            
-            -- Update the color
+
             selectedColor = updateColor()
         end
-        
+
         local function togglePicker()
             pickerOpen = not pickerOpen
             pickerFrame.Visible = pickerOpen
         end
-        
-        -- Convert RGB to HSV for the default color
+
         local function rgbToHsv(color)
             local r, g, b = color.R, color.G, color.B
             local max, min = math.max(r, g, b), math.min(r, g, b)
             local h, s, v
-            
+
             v = max
-            
+
             local delta = max - min
             if max ~= 0 then
                 s = delta / max
@@ -1355,7 +1301,7 @@ function GuiLib:CreateWindow(name, size, position)
                 h = 0
                 return h, s, v
             end
-            
+
             if r == max then
                 h = (g - b) / delta
             elseif g == max then
@@ -1363,22 +1309,20 @@ function GuiLib:CreateWindow(name, size, position)
             else
                 h = 4 + (r - g) / delta
             end
-            
+
             h = h * 60
             if h < 0 then
                 h = h + 360
             end
-            
+
             return h / 360, s, v
         end
-        
-        -- Set initial HSV from default color
+
         hue, saturation, value = rgbToHsv(default)
         updateSelectors()
-        
-        -- Event handlers
+
         clickButton.MouseButton1Click:Connect(togglePicker)
-        
+
         hueFrame.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local absoluteX = input.Position.X - hueFrame.AbsolutePosition.X
@@ -1387,7 +1331,7 @@ function GuiLib:CreateWindow(name, size, position)
                 updateSelectors()
             end
         end)
-        
+
         hueFrame.InputChanged:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseMovement and game:GetService("UserInputService"):IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
                 local absoluteX = input.Position.X - hueFrame.AbsolutePosition.X
@@ -1396,7 +1340,7 @@ function GuiLib:CreateWindow(name, size, position)
                 updateSelectors()
             end
         end)
-        
+
         colorField.InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 then
                 local absoluteX = input.Position.X - colorField.AbsolutePosition.X
@@ -1406,7 +1350,7 @@ function GuiLib:CreateWindow(name, size, position)
                 updateSelectors()
             end
         end)
-        
+
         colorField.InputChanged:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseMovement and game:GetService("UserInputService"):IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
                 local absoluteX = input.Position.X - colorField.AbsolutePosition.X
@@ -1416,14 +1360,13 @@ function GuiLib:CreateWindow(name, size, position)
                 updateSelectors()
             end
         end)
-        
-        -- Close color picker when clicking outside
+
         game:GetService("UserInputService").InputBegan:Connect(function(input)
             if input.UserInputType == Enum.UserInputType.MouseButton1 and pickerOpen then
                 local mousePos = game:GetService("UserInputService"):GetMouseLocation()
                 local framePos = pickerFrame.AbsolutePosition
                 local frameSize = pickerFrame.AbsoluteSize
-                
+
                 if mousePos.X < framePos.X or mousePos.X > framePos.X + frameSize.X or
                    mousePos.Y < framePos.Y or mousePos.Y > framePos.Y + frameSize.Y then
                     if mousePos.X < colorDisplay.AbsolutePosition.X or mousePos.X > colorDisplay.AbsolutePosition.X + colorDisplay.AbsoluteSize.X or
@@ -1433,20 +1376,20 @@ function GuiLib:CreateWindow(name, size, position)
                 end
             end
         end)
-        
+
         local colorFunctions = {}
-        
+
         function colorFunctions:Set(color)
             if typeof(color) == "Color3" then
                 hue, saturation, value = rgbToHsv(color)
                 updateSelectors()
             end
         end
-        
+
         function colorFunctions:Get()
             return selectedColor
         end
-        
+
         return colorFunctions
     end
 
@@ -1458,11 +1401,11 @@ function GuiLib:CreateWindow(name, size, position)
         textBoxContainer.BackgroundTransparency = 0.4
         textBoxContainer.BorderSizePixel = 0
         textBoxContainer.Parent = self.container
-        
+
         local containerCorner = Instance.new("UICorner")
         containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
         containerCorner.Parent = textBoxContainer
-        
+
         local label = Instance.new("TextLabel")
         label.Name = "Label"
         label.Size = UDim2.new(1, -32, 0, 30)
@@ -1474,7 +1417,7 @@ function GuiLib:CreateWindow(name, size, position)
         label.Font = GuiLib.Settings.FontRegular
         label.TextXAlignment = Enum.TextXAlignment.Left
         label.Parent = textBoxContainer
-        
+
         local inputBox = Instance.new("TextBox")
         inputBox.Name = "InputBox"
         inputBox.Size = UDim2.new(1, -32, 0, 36)
@@ -1490,17 +1433,16 @@ function GuiLib:CreateWindow(name, size, position)
         inputBox.ClearTextOnFocus = false
         inputBox.ClipsDescendants = true
         inputBox.Parent = textBoxContainer
-        
+
         local boxCorner = Instance.new("UICorner")
         boxCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
         boxCorner.Parent = inputBox
-        
+
         local padding = Instance.new("UIPadding")
         padding.PaddingLeft = UDim.new(0, 10)
         padding.PaddingRight = UDim.new(0, 10)
         padding.Parent = inputBox
-        
-        -- Add a glow effect
+
         local boxStroke = Instance.new("UIStroke")
         boxStroke.Name = "BoxStroke"
         boxStroke.Color = GuiLib.Settings.DefaultColors.Accent
@@ -1508,8 +1450,7 @@ function GuiLib:CreateWindow(name, size, position)
         boxStroke.Thickness = 1.5
         boxStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
         boxStroke.Parent = inputBox
-        
-        -- Add focused effect
+
         inputBox.Focused:Connect(function()
             inputBox.BackgroundColor3 = Color3.fromRGB(
                 math.min(GuiLib.Settings.DefaultColors.Dropdown.R * 255 + 15, 255),
@@ -1518,16 +1459,16 @@ function GuiLib:CreateWindow(name, size, position)
             )
             boxStroke.Transparency = 0.5
         end)
-        
+
         inputBox.FocusLost:Connect(function(enterPressed)
             inputBox.BackgroundColor3 = GuiLib.Settings.DefaultColors.Dropdown
             boxStroke.Transparency = 0.9
-            
+
             if enterPressed and callback then
                 callback(inputBox.Text)
             end
         end)
-        
+
         if callback then
             inputBox.Changed:Connect(function(property)
                 if property == "Text" then
@@ -1535,24 +1476,23 @@ function GuiLib:CreateWindow(name, size, position)
                 end
             end)
         end
-        
+
         local textBoxFunctions = {}
-        
+
         function textBoxFunctions:Set(text)
             inputBox.Text = text or ""
         end
-        
+
         function textBoxFunctions:Get()
             return inputBox.Text
         end
-        
+
         return textBoxFunctions
     end
 
     return window
 end
 
--- Theme management
 function GuiLib:SetTheme(theme)
     if theme and typeof(theme) == "table" then
         for category, colors in pairs(theme) do
@@ -1567,7 +1507,6 @@ function GuiLib:SetTheme(theme)
     end
 end
 
--- Predefined themes
 GuiLib.Themes = {
     Modern = {
         DefaultColors = {
@@ -1732,7 +1671,6 @@ GuiLib.Themes = {
     }
 }
 
--- Safe initialization
 local success, result = pcall(function()
     return GuiLib
 end)
