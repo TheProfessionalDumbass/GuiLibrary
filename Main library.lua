@@ -129,41 +129,6 @@ function GuiLib:CreateWindow(name, size, position)
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Parent = titleBar
 
-    local closeButton = Instance.new("TextButton")
-    closeButton.Name = "CloseButton"
-    closeButton.Size = UDim2.new(0, 26, 0, 26)
-    closeButton.Position = UDim2.new(1, -32, 0, 6)
-    closeButton.BackgroundColor3 = self.Settings.DefaultColors.ButtonDisabled
-    closeButton.BackgroundTransparency = 0.3
-    closeButton.Text = ""
-    closeButton.AutoButtonColor = false
-    closeButton.Parent = titleBar
-
-    local closeCorner = Instance.new("UICorner")
-    closeCorner.CornerRadius = UDim.new(0, 4)
-    closeCorner.Parent = closeButton
-
-    local closeIcon = Instance.new("TextLabel")
-    closeIcon.Name = "CloseIcon"
-    closeIcon.Size = UDim2.new(1, 0, 1, 0)
-    closeIcon.BackgroundTransparency = 1
-    closeIcon.TextColor3 = Color3.fromRGB(255, 255, 255)
-    closeIcon.Text = "×"
-    closeIcon.TextSize = 18
-    closeIcon.Font = self.Settings.FontBold
-    closeIcon.Parent = closeButton
-
-    closeButton.MouseEnter:Connect(function()
-        closeButton.BackgroundTransparency = 0.1
-    end)
-
-    closeButton.MouseLeave:Connect(function()
-        closeButton.BackgroundTransparency = 0.3
-    end)
-
-    closeButton.MouseButton1Click:Connect(function()
-        gui:Destroy()
-    end)
 
     local containerBorder = Instance.new("Frame")
     containerBorder.Name = "ContainerBorder"
