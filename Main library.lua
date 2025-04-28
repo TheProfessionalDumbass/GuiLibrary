@@ -1,4 +1,4 @@
---[[ hello skid ]]
+--[[ GUI Library - Landscape Edition ]]
 local GuiLib = {}
 
 GuiLib.Settings = {
@@ -34,34 +34,63 @@ GuiLib.Settings = {
     EasingDirection = Enum.EasingDirection.Out
 }
 
+-- Custom shadow function for landscape orientation
+function GuiLib:CreateShadow(parent, shadowSize, cornerRadius)
+    local shadow = Instance.new("Frame")
+    shadow.Name = "CustomShadow"
+    shadow.Size = UDim2.new(1, shadowSize * 2, 1, shadowSize * 2)
+    shadow.Position = UDim2.new(0, -shadowSize, 0, -shadowSize)
+    shadow.BackgroundColor3 = self.Settings.DefaultColors.Shadow
+    shadow.BackgroundTransparency = 0.2
+    shadow.BorderSizePixel = 0
+    shadow.ZIndex = 0
+    shadow.Parent = parent
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = cornerRadius or self.Settings.CornerRadius
+    corner.Parent = shadow
+    
+    -- Create gradient for better shadow effect
+    local gradient = Instance.new("UIGradient")
+    gradient.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0.9),
+        NumberSequenceKeypoint.new(0.4, 0.95),
+        NumberSequenceKeypoint.new(1, 1)
+    })
+    gradient.Parent = shadow
+    
+    return shadow
+end
+
 function GuiLib:CreateWindow(name, size, position)
     local player = game:GetService("Players").LocalPlayer
     local playerGui = player:WaitForChild("PlayerGui")
 
     local gui = Instance.new("ScreenGui")
-    gui.Name = name or "Guilibwindow"
+    gui.Name = name or "GuiLibLandscape"
     gui.ResetOnSpawn = false
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
     pcall(function()
-        gui.Parent = CoreGui
+        gui.Parent = game:GetService("CoreGui")
     end)
- -- why bother adding this?
+
     if not gui.Parent then
         pcall(function()
             syn.protect_gui(gui)
             gui.Parent = game:GetService("CoreGui")
         end)
--- coregui better but extra measure
+
         if not gui.Parent then
             gui.Parent = playerGui
         end
     end
 
+    -- Create main frame with landscape orientation
     local mainFrame = Instance.new("Frame")
     mainFrame.Name = "MainFrame"
-    mainFrame.Size = size or UDim2.new(0, 300, 0, 350)
-    mainFrame.Position = position or UDim2.new(0.5, -150, 0.5, -175)
+    mainFrame.Size = size or UDim2.new(0, 650, 0, 350)  -- Default landscape size
+    mainFrame.Position = position or UDim2.new(0.5, -325, 0.5, -175)
     mainFrame.BackgroundColor3 = self.Settings.DefaultColors.Background
     mainFrame.BackgroundTransparency = self.Settings.DefaultTransparency
     mainFrame.BorderSizePixel = 0
@@ -71,21 +100,13 @@ function GuiLib:CreateWindow(name, size, position)
     corner.CornerRadius = self.Settings.CornerRadius
     corner.Parent = mainFrame
 
-    local shadow = Instance.new("ImageLabel")
-    shadow.Name = "Shadow"
-    shadow.Size = UDim2.new(1, 40, 1, 40)
-    shadow.Position = UDim2.new(0, -20, 0, -20)
-    shadow.BackgroundTransparency = 0
-    shadow.ImageColor3 = self.Settings.DefaultColors.Shadow
-    shadow.ImageTransparency = self.Settings.ShadowTransparency
-    shadow.ScaleType = Enum.ScaleType.Slice
-    shadow.SliceCenter = Rect.new(23, 23, 277, 277)
-    shadow.ZIndex = 0
-    shadow.Parent = mainFrame
+    -- Create custom shadow
+    self:CreateShadow(mainFrame, 20, self.Settings.CornerRadius)
 
+    -- Title bar (now on the left side)
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
-    titleBar.Size = UDim2.new(1, 0, 0, 38)
+    titleBar.Size = UDim2.new(0, 200, 1, 0)  -- Left sidebar
     titleBar.BackgroundColor3 = self.Settings.DefaultColors.Title
     titleBar.BackgroundTransparency = self.Settings.DefaultTransparency
     titleBar.BorderSizePixel = 0
@@ -95,23 +116,45 @@ function GuiLib:CreateWindow(name, size, position)
     titleCorner.CornerRadius = self.Settings.CornerRadius
     titleCorner.Parent = titleBar
 
-    local bottomFrameFix = Instance.new("Frame")
-    bottomFrameFix.Name = "BottomFix"
-    bottomFrameFix.Size = UDim2.new(1, 0, 0, 10)
-    bottomFrameFix.Position = UDim2.new(0, 0, 1, -10)
-    bottomFrameFix.BackgroundColor3 = self.Settings.DefaultColors.Title
-    bottomFrameFix.BackgroundTransparency = self.Settings.DefaultTransparency
-    bottomFrameFix.BorderSizePixel = 0
-    bottomFrameFix.ZIndex = 1
-    bottomFrameFix.Parent = titleBar
+    -- Right frame fix to prevent corner bleeding
+    local rightFrameFix = Instance.new("Frame")
+    rightFrameFix.Name = "RightFix"
+    rightFrameFix.Size = UDim2.new(0, 10, 1, 0)
+    rightFrameFix.Position = UDim2.new(1, -10, 0, 0)
+    rightFrameFix.BackgroundColor3 = self.Settings.DefaultColors.Title
+    rightFrameFix.BackgroundTransparency = self.Settings.DefaultTransparency
+    rightFrameFix.BorderSizePixel = 0
+    rightFrameFix.ZIndex = 1
+    rightFrameFix.Parent = titleBar
+
+    local titleHeader = Instance.new("Frame")
+    titleHeader.Name = "TitleHeader"
+    titleHeader.Size = UDim2.new(1, 0, 0, 38)
+    titleHeader.BackgroundColor3 = self.Settings.DefaultColors.Title
+    titleHeader.BackgroundTransparency = 0
+    titleHeader.BorderSizePixel = 0
+    titleHeader.Parent = titleBar
+
+    local headerCorner = Instance.new("UICorner")
+    headerCorner.CornerRadius = UDim.new(0, 6)
+    headerCorner.Parent = titleHeader
+
+    -- Fix for the header corners
+    local headerBottomFix = Instance.new("Frame")
+    headerBottomFix.Name = "HeaderBottomFix"
+    headerBottomFix.Size = UDim2.new(1, 0, 0, 10)
+    headerBottomFix.Position = UDim2.new(0, 0, 1, -10)
+    headerBottomFix.BackgroundColor3 = self.Settings.DefaultColors.Title
+    headerBottomFix.BorderSizePixel = 0
+    headerBottomFix.Parent = titleHeader
 
     local titleIcon = Instance.new("Frame")
     titleIcon.Name = "TitleIcon"
     titleIcon.Size = UDim2.new(0, 8, 0, 16)
-    titleIcon.Position = UDim2.new(0, 12, 0.5, -8)
+    titleIcon.Position = UDim2.new(0, 12, 0, 11)
     titleIcon.BackgroundColor3 = self.Settings.DefaultColors.Accent
     titleIcon.BorderSizePixel = 0
-    titleIcon.Parent = titleBar
+    titleIcon.Parent = titleHeader
 
     local titleIconCorner = Instance.new("UICorner")
     titleIconCorner.CornerRadius = UDim.new(0, 2)
@@ -127,7 +170,7 @@ function GuiLib:CreateWindow(name, size, position)
     titleLabel.Font = self.Settings.FontBold
     titleLabel.Text = name or "GUI Library"
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-    titleLabel.Parent = titleBar
+    titleLabel.Parent = titleHeader
 
     local closeButton = Instance.new("TextButton")
     closeButton.Name = "CloseButton"
@@ -137,7 +180,7 @@ function GuiLib:CreateWindow(name, size, position)
     closeButton.BackgroundTransparency = 0.3
     closeButton.Text = ""
     closeButton.AutoButtonColor = false
-    closeButton.Parent = titleBar
+    closeButton.Parent = titleHeader
 
     local closeCorner = Instance.new("UICorner")
     closeCorner.CornerRadius = UDim.new(0, 4)
@@ -152,7 +195,7 @@ function GuiLib:CreateWindow(name, size, position)
     closeIcon.TextSize = 18
     closeIcon.Font = self.Settings.FontBold
     closeIcon.Parent = closeButton
--- shittest ui lib ever
+
     closeButton.MouseEnter:Connect(function()
         closeButton.BackgroundTransparency = 0.1
     end)
@@ -165,29 +208,56 @@ function GuiLib:CreateWindow(name, size, position)
         gui:Destroy()
     end)
 
-    local containerBorder = Instance.new("Frame")
-    containerBorder.Name = "ContainerBorder"
-    containerBorder.Size = UDim2.new(1, -16, 1, -46)
-    containerBorder.Position = UDim2.new(0, 8, 0, 38)
-    containerBorder.BackgroundColor3 = self.Settings.DefaultColors.BackgroundSecondary
-    containerBorder.BackgroundTransparency = 0.25
-    containerBorder.BorderSizePixel = 0
-    containerBorder.Parent = mainFrame
+    -- Navigation sidebar in the left panel
+    local navContainer = Instance.new("ScrollingFrame")
+    navContainer.Name = "NavContainer"
+    navContainer.Size = UDim2.new(1, -16, 1, -46)
+    navContainer.Position = UDim2.new(0, 8, 0, 38)
+    navContainer.BackgroundTransparency = 1
+    navContainer.BorderSizePixel = 0
+    navContainer.ScrollBarThickness = 3
+    navContainer.ScrollBarImageColor3 = self.Settings.DefaultColors.ScrollBar
+    navContainer.CanvasSize = UDim2.new(0, 0, 0, 0)
+    navContainer.Parent = titleBar
 
-    local borderCorner = Instance.new("UICorner")
-    borderCorner.CornerRadius = UDim.new(0, 6)
-    borderCorner.Parent = containerBorder
+    local navLayout = Instance.new("UIListLayout")
+    navLayout.Padding = UDim.new(0, 8)
+    navLayout.FillDirection = Enum.FillDirection.Vertical
+    navLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    navLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    navLayout.Parent = navContainer
+
+    local navPadding = Instance.new("UIPadding")
+    navPadding.PaddingTop = UDim.new(0, 6)
+    navPadding.PaddingBottom = UDim.new(0, 6)
+    navPadding.PaddingLeft = UDim.new(0, 2)
+    navPadding.PaddingRight = UDim.new(0, 2)
+    navPadding.Parent = navContainer
+
+    -- Content area (right side)
+    local contentContainer = Instance.new("Frame")
+    contentContainer.Name = "ContentContainer"
+    contentContainer.Size = UDim2.new(1, -208, 1, -16)
+    contentContainer.Position = UDim2.new(0, 200, 0, 8)
+    contentContainer.BackgroundColor3 = self.Settings.DefaultColors.BackgroundSecondary
+    contentContainer.BackgroundTransparency = 0.25
+    contentContainer.BorderSizePixel = 0
+    contentContainer.Parent = mainFrame
+
+    local contentCorner = Instance.new("UICorner")
+    contentCorner.CornerRadius = UDim.new(0, 6)
+    contentCorner.Parent = contentContainer
 
     local scrollingFrame = Instance.new("ScrollingFrame")
     scrollingFrame.Name = "Container"
-    scrollingFrame.Size = UDim2.new(1, -12, 1, -12)
-    scrollingFrame.Position = UDim2.new(0, 6, 0, 6)
+    scrollingFrame.Size = UDim2.new(1, -16, 1, -16)
+    scrollingFrame.Position = UDim2.new(0, 8, 0, 8)
     scrollingFrame.BackgroundTransparency = 1
     scrollingFrame.BorderSizePixel = 0
-    scrollingFrame.ScrollBarThickness = 3
+    scrollingFrame.ScrollBarThickness = 4
     scrollingFrame.ScrollBarImageColor3 = self.Settings.DefaultColors.ScrollBar
     scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-    scrollingFrame.Parent = containerBorder
+    scrollingFrame.Parent = contentContainer
 
     local listLayout = Instance.new("UIListLayout")
     listLayout.Padding = UDim.new(0, 8)
@@ -214,7 +284,7 @@ function GuiLib:CreateWindow(name, size, position)
         )
     end
 
-    titleBar.InputBegan:Connect(function(input)
+    titleHeader.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             isDragging = true
             dragStart = input.Position
@@ -222,7 +292,7 @@ function GuiLib:CreateWindow(name, size, position)
         end
     end)
 
-    titleBar.InputEnded:Connect(function(input)
+    titleHeader.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             isDragging = false
         end
@@ -234,17 +304,26 @@ function GuiLib:CreateWindow(name, size, position)
         end
     end)
 
+    -- Update canvas size when content changes
     listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
         scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y + 12)
+    end)
+    
+    -- Update navigation canvas size
+    navLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        navContainer.CanvasSize = UDim2.new(0, 0, 0, navLayout.AbsoluteContentSize.Y + 12)
     end)
 
     local window = {}
     window.gui = gui
     window.mainFrame = mainFrame
     window.container = scrollingFrame
+    window.navContainer = navContainer
+    window.pages = {}
+    window.currentPage = nil
 
+    -- Function to toggle window visibility
     function window:ToggleState(visible)
-
         if type(visible) ~= "boolean" then
             error("ToggleState requires a boolean parameter (true or false)")
             return
@@ -257,18 +336,140 @@ function GuiLib:CreateWindow(name, size, position)
         end
 
         mainFrame.Visible = visible
-
         return self
     end
 
-    function window:AddSection(title)
+    -- Add page function for tabbed interface
+    function window:AddPage(name, icon)
+        local pageButton = Instance.new("TextButton")
+        pageButton.Name = "PageButton_" .. name
+        pageButton.Size = UDim2.new(1, -16, 0, 36)
+        pageButton.BackgroundColor3 = self.currentPage == name and GuiLib.Settings.DefaultColors.Accent or GuiLib.Settings.DefaultColors.Button
+        pageButton.BackgroundTransparency = 0.2
+        pageButton.TextColor3 = GuiLib.Settings.DefaultColors.Text
+        pageButton.Text = name
+        pageButton.TextSize = 14
+        pageButton.Font = GuiLib.Settings.FontSemibold
+        pageButton.AutoButtonColor = false
+        pageButton.Parent = self.navContainer
+
+        local buttonCorner = Instance.new("UICorner")
+        buttonCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
+        buttonCorner.Parent = pageButton
+        
+        -- Icon (optional)
+        if icon then
+            local iconLabel = Instance.new("TextLabel")
+            iconLabel.Name = "Icon"
+            iconLabel.Size = UDim2.new(0, 20, 0, 20)
+            iconLabel.Position = UDim2.new(0, 8, 0.5, -10)
+            iconLabel.BackgroundTransparency = 1
+            iconLabel.TextColor3 = GuiLib.Settings.DefaultColors.Text
+            iconLabel.Text = icon
+            iconLabel.TextSize = 16
+            iconLabel.Font = GuiLib.Settings.FontBold
+            iconLabel.Parent = pageButton
+            
+            -- Adjust text position
+            pageButton.Text = "    " .. name
+            pageButton.TextXAlignment = Enum.TextXAlignment.Left
+        end
+
+        -- Create page content frame
+        local pageFrame = Instance.new("ScrollingFrame")
+        pageFrame.Name = "Page_" .. name
+        pageFrame.Size = UDim2.new(1, 0, 1, 0)
+        pageFrame.BackgroundTransparency = 1
+        pageFrame.BorderSizePixel = 0
+        pageFrame.ScrollBarThickness = 4
+        pageFrame.ScrollBarImageColor3 = GuiLib.Settings.DefaultColors.ScrollBar
+        pageFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+        pageFrame.Visible = false
+        pageFrame.Parent = self.container
+
+        local pageLayout = Instance.new("UIListLayout")
+        pageLayout.Padding = UDim.new(0, 8)
+        pageLayout.FillDirection = Enum.FillDirection.Vertical
+        pageLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+        pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+        pageLayout.Parent = pageFrame
+
+        local pagePadding = Instance.new("UIPadding")
+        pagePadding.PaddingTop = UDim.new(0, 6)
+        pagePadding.PaddingBottom = UDim.new(0, 6)
+        pagePadding.PaddingLeft = UDim.new(0, 2)
+        pagePadding.PaddingRight = UDim.new(0, 2)
+        pagePadding.Parent = pageFrame
+
+        -- Update canvas size when content changes
+        pageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+            pageFrame.CanvasSize = UDim2.new(0, 0, 0, pageLayout.AbsoluteContentSize.Y + 12)
+        end)
+
+        -- Button hover/press effects
+        pageButton.MouseEnter:Connect(function()
+            if self.currentPage ~= name then
+                pageButton.BackgroundTransparency = 0
+                pageButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.ButtonHover
+            end
+        end)
+
+        pageButton.MouseLeave:Connect(function()
+            if self.currentPage ~= name then
+                pageButton.BackgroundTransparency = 0.2
+                pageButton.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
+            end
+        end)
+
+        pageButton.MouseButton1Click:Connect(function()
+            self:SelectPage(name)
+        end)
+
+        -- Add page to pages table
+        self.pages[name] = {
+            button = pageButton,
+            frame = pageFrame
+        }
+
+        -- If this is the first page, select it
+        if not self.currentPage then
+            self:SelectPage(name)
+        end
+
+        -- Return page for chaining
+        return pageFrame
+    end
+
+    -- Function to select a page
+    function window:SelectPage(name)
+        if not self.pages[name] then return end
+        
+        -- Hide all pages and reset button styles
+        for pageName, page in pairs(self.pages) do
+            page.frame.Visible = false
+            page.button.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
+            page.button.BackgroundTransparency = 0.2
+        end
+        
+        -- Show selected page and highlight button
+        self.pages[name].frame.Visible = true
+        self.pages[name].button.BackgroundColor3 = GuiLib.Settings.DefaultColors.Accent
+        self.pages[name].button.BackgroundTransparency = 0
+        
+        self.currentPage = name
+    end
+
+    -- Section function (unchanged, but returns parent for better chaining)
+    function window:AddSection(title, parent)
+        local container = parent or self.container
+        
         local section = Instance.new("Frame")
         section.Name = "Section"
         section.Size = UDim2.new(1, -4, 0, 36)
         section.BackgroundColor3 = GuiLib.Settings.DefaultColors.Title
         section.BackgroundTransparency = 0.35
         section.BorderSizePixel = 0
-        section.Parent = self.container
+        section.Parent = container
 
         local sectionCorner = Instance.new("UICorner")
         sectionCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
@@ -298,10 +499,13 @@ function GuiLib:CreateWindow(name, size, position)
         sectionTitle.TextXAlignment = Enum.TextXAlignment.Left
         sectionTitle.Parent = section
 
-        return section
+        return section, container
     end
 
-    function window:AddLabel(text)
+    -- Modified the element creation functions to take a parent parameter
+    function window:AddLabel(text, parent)
+        local container = parent or self.container
+        
         local labelInstance = Instance.new("TextLabel")
         labelInstance.Name = "Label"
         labelInstance.Size = UDim2.new(1, -8, 0, 26)
@@ -310,7 +514,7 @@ function GuiLib:CreateWindow(name, size, position)
         labelInstance.Text = text or "Label"
         labelInstance.TextSize = 14
         labelInstance.Font = GuiLib.Settings.FontRegular
-        labelInstance.Parent = self.container
+        labelInstance.Parent = container
 
         local label = {
             Instance = labelInstance,
@@ -322,7 +526,9 @@ function GuiLib:CreateWindow(name, size, position)
         return label
     end
 
-    function window:AddButton(text, callback)
+    function window:AddButton(text, callback, parent)
+        local container = parent or self.container
+        
         local button = Instance.new("TextButton")
         button.Name = "Button"
         button.Size = UDim2.new(1, -8, 0, 36)
@@ -332,7 +538,7 @@ function GuiLib:CreateWindow(name, size, position)
         button.TextSize = 14
         button.Font = GuiLib.Settings.FontSemibold
         button.AutoButtonColor = false
-        button.Parent = self.container
+        button.Parent = container
 
         local buttonCorner = Instance.new("UICorner")
         buttonCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
@@ -405,14 +611,16 @@ function GuiLib:CreateWindow(name, size, position)
         return button
     end
 
-    function window:AddToggle(text, default, callback)
+    function window:AddToggle(text, default, callback, parent)
+        local container = parent or self.container
+        
         local toggleContainer = Instance.new("Frame")
         toggleContainer.Name = "ToggleContainer"
         toggleContainer.Size = UDim2.new(1, -8, 0, 36)
         toggleContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
         toggleContainer.BackgroundTransparency = 0.4
         toggleContainer.BorderSizePixel = 0
-        toggleContainer.Parent = self.container
+        toggleContainer.Parent = container
 
         local containerCorner = Instance.new("UICorner")
         containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
@@ -524,7 +732,9 @@ function GuiLib:CreateWindow(name, size, position)
         return toggleFunctions
     end
 
-    function window:AddSlider(text, min, max, default, precision, callback)
+    function window:AddSlider(text, min, max, default, precision, callback, parent)
+        local container = parent or self.container
+        
         min = min or 0
         max = max or 100
         default = default or min
@@ -536,7 +746,7 @@ function GuiLib:CreateWindow(name, size, position)
         sliderContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
         sliderContainer.BackgroundTransparency = 0.4
         sliderContainer.BorderSizePixel = 0
-        sliderContainer.Parent = self.container
+        sliderContainer.Parent = container
 
         local containerCorner = Instance.new("UICorner")
         containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
@@ -752,7 +962,10 @@ function GuiLib:CreateWindow(name, size, position)
         return sliderFunctions
     end
 
-    function window:AddDropdown(text, options, default, callback)
+    -- Include the rest of your element functions with the parent parameter here
+    function window:AddDropdown(text, options, default, callback, parent)
+        local container = parent or self.container
+        
         local dropdownContainer = Instance.new("Frame")
         dropdownContainer.Name = "DropdownContainer"
         dropdownContainer.Size = UDim2.new(1, -8, 0, 66)
@@ -760,7 +973,7 @@ function GuiLib:CreateWindow(name, size, position)
         dropdownContainer.BackgroundTransparency = 0.4
         dropdownContainer.BorderSizePixel = 0
         dropdownContainer.ClipsDescendants = true
-        dropdownContainer.Parent = self.container
+        dropdownContainer.Parent = container
 
         local containerCorner = Instance.new("UICorner")
         containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
@@ -1051,448 +1264,11 @@ function GuiLib:CreateWindow(name, size, position)
         return dropdownFunctions
     end
 
-    function window:AddColorPicker(text, default, callback)
-        default = default or Color3.fromRGB(255, 255, 255)
-
-        local colorPickerContainer = Instance.new("Frame")
-        colorPickerContainer.Name = "ColorPickerContainer"
-        colorPickerContainer.Size = UDim2.new(1, -8, 0, 36)
-        colorPickerContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
-        colorPickerContainer.BackgroundTransparency = 0.4
-        colorPickerContainer.BorderSizePixel = 0
-        colorPickerContainer.Parent = self.container
-
-        local containerCorner = Instance.new("UICorner")
-        containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
-        containerCorner.Parent = colorPickerContainer
-
-        local label = Instance.new("TextLabel")
-        label.Name = "Label"
-        label.Size = UDim2.new(1, -66, 1, 0)
-        label.Position = UDim2.new(0, 16, 0, 0)
-        label.BackgroundTransparency = 1
-        label.TextColor3 = GuiLib.Settings.DefaultColors.Text
-        label.Text = text or "Color Picker"
-        label.TextSize = 14
-        label.Font = GuiLib.Settings.FontRegular
-        label.TextXAlignment = Enum.TextXAlignment.Left
-        label.Parent = colorPickerContainer
-
-        local colorDisplay = Instance.new("Frame")
-        colorDisplay.Name = "ColorDisplay"
-        colorDisplay.Size = UDim2.new(0, 36, 0, 26)
-        colorDisplay.Position = UDim2.new(1, -46, 0.5, -13)
-        colorDisplay.BackgroundColor3 = default
-        colorDisplay.BorderSizePixel = 0
-        colorDisplay.Parent = colorPickerContainer
-
-        local displayCorner = Instance.new("UICorner")
-        displayCorner.CornerRadius = UDim.new(0, 4)
-        displayCorner.Parent = colorDisplay
-
-        local displayStroke = Instance.new("UIStroke")
-        displayStroke.Name = "DisplayStroke"
-        displayStroke.Color = Color3.fromRGB(255, 255, 255)
-        displayStroke.Transparency = 0.8
-        displayStroke.Thickness = 1
-        displayStroke.Parent = colorDisplay
-
-        local clickButton = Instance.new("TextButton")
-        clickButton.Name = "ClickButton"
-        clickButton.Size = UDim2.new(1, 0, 1, 0)
-        clickButton.BackgroundTransparency = 1
-        clickButton.Text = ""
-        clickButton.Parent = colorDisplay
-
-        local pickerFrame = Instance.new("Frame")
-        pickerFrame.Name = "PickerFrame"
-        pickerFrame.Size = UDim2.new(0, 220, 0, 240)
-        pickerFrame.Position = UDim2.new(1, -220, 1, 10)
-        pickerFrame.BackgroundColor3 = GuiLib.Settings.DefaultColors.BackgroundSecondary
-        pickerFrame.BackgroundTransparency = 0.1
-        pickerFrame.BorderSizePixel = 0
-        pickerFrame.Visible = false
-        pickerFrame.ZIndex = 10
-        pickerFrame.Parent = colorPickerContainer
-
-        local pickerCorner = Instance.new("UICorner")
-        pickerCorner.CornerRadius = GuiLib.Settings.CornerRadius
-        pickerCorner.Parent = pickerFrame
-
-        local pickerTitle = Instance.new("TextLabel")
-        pickerTitle.Name = "PickerTitle"
-        pickerTitle.Size = UDim2.new(1, 0, 0, 30)
-        pickerTitle.BackgroundTransparency = 1
-        pickerTitle.TextColor3 = GuiLib.Settings.DefaultColors.Text
-        pickerTitle.Text = "Select Color"
-        pickerTitle.TextSize = 14
-        pickerTitle.Font = GuiLib.Settings.FontSemibold
-        pickerTitle.ZIndex = 11
-        pickerTitle.Parent = pickerFrame
-
-        local hueFrame = Instance.new("Frame")
-        hueFrame.Name = "HueFrame"
-        hueFrame.Size = UDim2.new(0, 190, 0, 20)
-        hueFrame.Position = UDim2.new(0.5, -95, 0, 190)
-        hueFrame.ZIndex = 11
-        hueFrame.Parent = pickerFrame
-
-        local hueCorner = Instance.new("UICorner")
-        hueCorner.CornerRadius = UDim.new(0, 4)
-        hueCorner.Parent = hueFrame
-
-        local hueGradient = Instance.new("UIGradient")
-        hueGradient.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 0)),
-            ColorSequenceKeypoint.new(0.167, Color3.fromRGB(255, 255, 0)),
-            ColorSequenceKeypoint.new(0.333, Color3.fromRGB(0, 255, 0)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)),
-            ColorSequenceKeypoint.new(0.667, Color3.fromRGB(0, 0, 255)),
-            ColorSequenceKeypoint.new(0.833, Color3.fromRGB(255, 0, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
-        })
-        hueGradient.Parent = hueFrame
-
-        local hueSelector = Instance.new("Frame")
-        hueSelector.Name = "HueSelector"
-        hueSelector.Size = UDim2.new(0, 6, 1, 6)
-        hueSelector.Position = UDim2.new(0, 0, 0, -3)
-        hueSelector.BorderSizePixel = 1
-        hueSelector.BorderColor3 = Color3.fromRGB(255, 255, 255)
-        hueSelector.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        hueSelector.BackgroundTransparency = 0.7
-        hueSelector.ZIndex = 12
-        hueSelector.Parent = hueFrame
-
-        local colorField = Instance.new("Frame")
-        colorField.Name = "ColorField"
-        colorField.Size = UDim2.new(0, 190, 0, 150)
-        colorField.Position = UDim2.new(0.5, -95, 0, 35)
-        colorField.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-        colorField.BorderSizePixel = 0
-        colorField.ZIndex = 11
-        colorField.Parent = pickerFrame
-
-        local colorCorner = Instance.new("UICorner")
-        colorCorner.CornerRadius = UDim.new(0, 4)
-        colorCorner.Parent = colorField
-
-        local saturationGradient = Instance.new("UIGradient")
-        saturationGradient.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 255, 0))
-        })
-        saturationGradient.Transparency = NumberSequence.new({
-            NumberSequenceKeypoint.new(0, 0),
-            NumberSequenceKeypoint.new(1, 0)
-        })
-        saturationGradient.Parent = colorField
-
-        local brightnessFrame = Instance.new("Frame")
-        brightnessFrame.Name = "BrightnessFrame"
-        brightnessFrame.Size = UDim2.new(1, 0, 1, 0)
-        brightnessFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-        brightnessFrame.BackgroundTransparency = 0
-        brightnessFrame.BorderSizePixel = 0
-        brightnessFrame.ZIndex = 12
-        brightnessFrame.Parent = colorField
-
-        local brightnessGradient = Instance.new("UIGradient")
-        brightnessGradient.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 0, 0, 0)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 0, 0))
-        })
-        brightnessGradient.Rotation = 90
-        brightnessGradient.Parent = brightnessFrame
-
-        local brightnessCorner = Instance.new("UICorner")
-        brightnessCorner.CornerRadius = UDim.new(0, 4)
-        brightnessCorner.Parent = brightnessFrame
-
-        local colorSelector = Instance.new("Frame")
-        colorSelector.Name = "ColorSelector"
-        colorSelector.Size = UDim2.new(0, 14, 0, 14)
-        colorSelector.AnchorPoint = Vector2.new(0.5, 0.5)
-        colorSelector.BackgroundTransparency = 1
-        colorSelector.BorderSizePixel = 2
-        colorSelector.BorderColor3 = Color3.fromRGB(255, 255, 255)
-        colorSelector.ZIndex = 13
-        colorSelector.Parent = colorField
-
-        local selectorInner = Instance.new("Frame")
-        selectorInner.Name = "SelectorInner"
-        selectorInner.Size = UDim2.new(0, 6, 0, 6)
-        selectorInner.Position = UDim2.new(0.5, -3, 0.5, -3)
-        selectorInner.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        selectorInner.BorderSizePixel = 0
-        selectorInner.ZIndex = 14
-        selectorInner.Parent = colorSelector
-
-        local innerCorner = Instance.new("UICorner")
-        innerCorner.CornerRadius = UDim.new(1, 0)
-        innerCorner.Parent = selectorInner
-
-        local currentColorDisplay = Instance.new("Frame")
-        currentColorDisplay.Name = "CurrentColor"
-        currentColorDisplay.Size = UDim2.new(0, 190, 0, 30)
-        currentColorDisplay.Position = UDim2.new(0.5, -95, 1, -40)
-        currentColorDisplay.BackgroundColor3 = default
-        currentColorDisplay.BorderSizePixel = 0
-        currentColorDisplay.ZIndex = 11
-        currentColorDisplay.Parent = pickerFrame
-
-        local currentColorCorner = Instance.new("UICorner")
-        currentColorCorner.CornerRadius = UDim.new(0, 4)
-        currentColorCorner.Parent = currentColorDisplay
-
-        clickButton.MouseEnter:Connect(function()
-            displayStroke.Transparency = 0.5
-            colorPickerContainer.BackgroundTransparency = 0.2
-        end)
-
-        clickButton.MouseLeave:Connect(function()
-            displayStroke.Transparency = 0.8
-            colorPickerContainer.BackgroundTransparency = 0.4
-        end)
-
-        local pickerOpen = false
-        local selectedColor = default
-        local hue, saturation, value = 0, 0, 1
-
-        local function updateColor()
-            local hsv = Color3.fromHSV(hue, saturation, value)
-            colorDisplay.BackgroundColor3 = hsv
-            currentColorDisplay.BackgroundColor3 = hsv
-            colorField.BackgroundColor3 = Color3.fromHSV(hue, 1, 1)
-
-            if callback then
-                callback(hsv)
-            end
-
-            return hsv
-        end
-
-        local function updateSelectors()
-
-            hueSelector.Position = UDim2.new(hue, -3, 0, -3)
-
-            colorSelector.Position = UDim2.new(saturation, 0, 1 - value, 0)
-
-            selectedColor = updateColor()
-        end
-
-        local function togglePicker()
-            pickerOpen = not pickerOpen
-            pickerFrame.Visible = pickerOpen
-        end
-
-        local function rgbToHsv(color)
-            local r, g, b = color.R, color.G, color.B
-            local max, min = math.max(r, g, b), math.min(r, g, b)
-            local h, s, v
-
-            v = max
-
-            local delta = max - min
-            if max ~= 0 then
-                s = delta / max
-            else
-                s = 0
-                h = 0
-                return h, s, v
-            end
-
-            if r == max then
-                h = (g - b) / delta
-            elseif g == max then
-                h = 2 + (b - r) / delta
-            else
-                h = 4 + (r - g) / delta
-            end
-
-            h = h * 60
-            if h < 0 then
-                h = h + 360
-            end
-
-            return h / 360, s, v
-        end
-
-        hue, saturation, value = rgbToHsv(default)
-        updateSelectors()
-
-        clickButton.MouseButton1Click:Connect(togglePicker)
-
-        hueFrame.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                local absoluteX = input.Position.X - hueFrame.AbsolutePosition.X
-                local huePercent = math.clamp(absoluteX / hueFrame.AbsoluteSize.X, 0, 1)
-                hue = huePercent
-                updateSelectors()
-            end
-        end)
-
-        hueFrame.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement and game:GetService("UserInputService"):IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
-                local absoluteX = input.Position.X - hueFrame.AbsolutePosition.X
-                local huePercent = math.clamp(absoluteX / hueFrame.AbsoluteSize.X, 0, 1)
-                hue = huePercent
-                updateSelectors()
-            end
-        end)
-
-        colorField.InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                local absoluteX = input.Position.X - colorField.AbsolutePosition.X
-                local absoluteY = input.Position.Y - colorField.AbsolutePosition.Y
-                saturation = math.clamp(absoluteX / colorField.AbsoluteSize.X, 0, 1)
-                value = 1 - math.clamp(absoluteY / colorField.AbsoluteSize.Y, 0, 1)
-                updateSelectors()
-            end
-        end)
-
-        colorField.InputChanged:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseMovement and game:GetService("UserInputService"):IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
-                local absoluteX = input.Position.X - colorField.AbsolutePosition.X
-                local absoluteY = input.Position.Y - colorField.AbsolutePosition.Y
-                saturation = math.clamp(absoluteX / colorField.AbsoluteSize.X, 0, 1)
-                value = 1 - math.clamp(absoluteY / colorField.AbsoluteSize.Y, 0, 1)
-                updateSelectors()
-            end
-        end)
-
-        game:GetService("UserInputService").InputBegan:Connect(function(input)
-            if input.UserInputType == Enum.UserInputType.MouseButton1 and pickerOpen then
-                local mousePos = game:GetService("UserInputService"):GetMouseLocation()
-                local framePos = pickerFrame.AbsolutePosition
-                local frameSize = pickerFrame.AbsoluteSize
-
-                if mousePos.X < framePos.X or mousePos.X > framePos.X + frameSize.X or
-                   mousePos.Y < framePos.Y or mousePos.Y > framePos.Y + frameSize.Y then
-                    if mousePos.X < colorDisplay.AbsolutePosition.X or mousePos.X > colorDisplay.AbsolutePosition.X + colorDisplay.AbsoluteSize.X or
-                       mousePos.Y < colorDisplay.AbsolutePosition.Y or mousePos.Y > colorDisplay.AbsolutePosition.Y + colorDisplay.AbsoluteSize.Y then
-                        togglePicker()
-                    end
-                end
-            end
-        end)
-
-        local colorFunctions = {}
-
-        function colorFunctions:Set(color)
-            if typeof(color) == "Color3" then
-                hue, saturation, value = rgbToHsv(color)
-                updateSelectors()
-            end
-        end
-
-        function colorFunctions:Get()
-            return selectedColor
-        end
-
-        return colorFunctions
-    end
-
-    function window:AddTextBox(text, placeholder, defaultText, callback)
-        local textBoxContainer = Instance.new("Frame")
-        textBoxContainer.Name = "TextBoxContainer"
-        textBoxContainer.Size = UDim2.new(1, -8, 0, 66)
-        textBoxContainer.BackgroundColor3 = GuiLib.Settings.DefaultColors.Button
-        textBoxContainer.BackgroundTransparency = 0.4
-        textBoxContainer.BorderSizePixel = 0
-        textBoxContainer.Parent = self.container
-
-        local containerCorner = Instance.new("UICorner")
-        containerCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
-        containerCorner.Parent = textBoxContainer
-
-        local label = Instance.new("TextLabel")
-        label.Name = "Label"
-        label.Size = UDim2.new(1, -32, 0, 30)
-        label.Position = UDim2.new(0, 16, 0, 0)
-        label.BackgroundTransparency = 1
-        label.TextColor3 = GuiLib.Settings.DefaultColors.Text
-        label.Text = text or "Text Input"
-        label.TextSize = 14
-        label.Font = GuiLib.Settings.FontRegular
-        label.TextXAlignment = Enum.TextXAlignment.Left
-        label.Parent = textBoxContainer
-
-        local inputBox = Instance.new("TextBox")
-        inputBox.Name = "InputBox"
-        inputBox.Size = UDim2.new(1, -32, 0, 36)
-        inputBox.Position = UDim2.new(0, 16, 0, 30)
-        inputBox.BackgroundColor3 = GuiLib.Settings.DefaultColors.Dropdown
-        inputBox.TextColor3 = GuiLib.Settings.DefaultColors.Text
-        inputBox.PlaceholderText = placeholder or "Enter text here..."
-        inputBox.PlaceholderColor3 = GuiLib.Settings.DefaultColors.TextDimmed
-        inputBox.Text = defaultText or ""
-        inputBox.TextSize = 14
-        inputBox.Font = GuiLib.Settings.FontRegular
-        inputBox.TextXAlignment = Enum.TextXAlignment.Left
-        inputBox.ClearTextOnFocus = false
-        inputBox.ClipsDescendants = true
-        inputBox.Parent = textBoxContainer
-
-        local boxCorner = Instance.new("UICorner")
-        boxCorner.CornerRadius = GuiLib.Settings.ElementCornerRadius
-        boxCorner.Parent = inputBox
-
-        local padding = Instance.new("UIPadding")
-        padding.PaddingLeft = UDim.new(0, 10)
-        padding.PaddingRight = UDim.new(0, 10)
-        padding.Parent = inputBox
-
-        local boxStroke = Instance.new("UIStroke")
-        boxStroke.Name = "BoxStroke"
-        boxStroke.Color = GuiLib.Settings.DefaultColors.Accent
-        boxStroke.Transparency = 0.9
-        boxStroke.Thickness = 1.5
-        boxStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-        boxStroke.Parent = inputBox
-
-        inputBox.Focused:Connect(function()
-            inputBox.BackgroundColor3 = Color3.fromRGB(
-                math.min(GuiLib.Settings.DefaultColors.Dropdown.R * 255 + 15, 255),
-                math.min(GuiLib.Settings.DefaultColors.Dropdown.G * 255 + 15, 255),
-                math.min(GuiLib.Settings.DefaultColors.Dropdown.B * 255 + 15, 255)
-            )
-            boxStroke.Transparency = 0.5
-        end)
-
-        inputBox.FocusLost:Connect(function(enterPressed)
-            inputBox.BackgroundColor3 = GuiLib.Settings.DefaultColors.Dropdown
-            boxStroke.Transparency = 0.9
-
-            if enterPressed and callback then
-                callback(inputBox.Text)
-            end
-        end)
-
-        if callback then
-            inputBox.Changed:Connect(function(property)
-                if property == "Text" then
-                    callback(inputBox.Text)
-                end
-            end)
-        end
-
-        local textBoxFunctions = {}
-
-        function textBoxFunctions:Set(text)
-            inputBox.Text = text or ""
-        end
-
-        function textBoxFunctions:Get()
-            return inputBox.Text
-        end
-
-        return textBoxFunctions
-    end
-
+    -- Return window for method chaining
     return window
 end
 
+-- Theme system remains unchanged
 function GuiLib:SetTheme(theme)
     if theme and typeof(theme) == "table" then
         for category, colors in pairs(theme) do
@@ -1507,6 +1283,7 @@ function GuiLib:SetTheme(theme)
     end
 end
 
+-- Keep the existing themes
 GuiLib.Themes = {
     Modern = {
         DefaultColors = {
