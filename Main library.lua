@@ -41,7 +41,7 @@ function GuiLib:CreateWindow(name, size, position)
     gui.Name = name or "GuiLibWindow"
     gui.ResetOnSpawn = false
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
+    gui.DisplayOrder = 99999
     pcall(function()
         gui.Parent = CoreGui
     end)
@@ -65,7 +65,7 @@ function GuiLib:CreateWindow(name, size, position)
     mainFrame.BackgroundTransparency = self.Settings.DefaultTransparency
     mainFrame.BorderSizePixel = 0
     mainFrame.Parent = gui
-
+    mainFrame.ZIndex = 99999
     local corner = Instance.new("UICorner")
     corner.CornerRadius = self.Settings.CornerRadius
     corner.Parent = mainFrame
@@ -82,7 +82,7 @@ function GuiLib:CreateWindow(name, size, position)
     shadow.SliceCenter = Rect.new(23, 23, 277, 277)
     shadow.ZIndex = 0
     shadow.Parent = mainFrame
-
+    
     local titleBar = Instance.new("Frame")
     titleBar.Name = "TitleBar"
     titleBar.Size = UDim2.new(1, 0, 0, 38)
