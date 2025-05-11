@@ -43,14 +43,13 @@ function GuiLib:CreateWindow(name, size, position)
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     gui.DisplayOrder = 99999
     pcall(function()
-        gui.Parent = CoreGui
+        gui.Parent = gethui()
     end)
 
     if not gui.Parent then
         pcall(function()
             syn.protect_gui(gui)
-            gui.Parent = game:GetService("CoreGui")
-        end)
+            gui.Parent = gethui() end)
 
         if not gui.Parent then
             gui.Parent = playerGui
